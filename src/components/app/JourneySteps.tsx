@@ -1,9 +1,9 @@
-import { Fragment, useMemo, useState, type ComponentType } from "react";
+import { Fragment, useEffect, useMemo, useState, type ComponentType } from "react";
 import {
   Sparkles, FileText, Search, Layers, DollarSign, Gavel, ClipboardList,
   CheckCircle2, AlertTriangle, Info, Zap, TrendingUp, ShieldCheck, ChevronDown,
   Lightbulb, Compass, MessageSquare, ArrowRight, Filter, ChevronLeft, ChevronRight,
-  MoreVertical, X, FileCheck2,
+  MoreVertical, X, FileCheck2, Loader2,
 } from "lucide-react";
 import {
   aiBrief, findingSections, riskStory, quote, decision, auditTrail, submission,
@@ -13,46 +13,76 @@ import {
 
 type Step = { id: string; label: string; blurb: string; icon: ComponentType<{ className?: string }> };
 
+// Order: findings → risk → quote → decision → audit → brief (AI Brief is now the
+// final step, presented as the AI's synthesized summary after every stage completes).
 const STEPS: Step[] = [
-  { id: "brief", label: "AI Brief", blurb: "Executive summary", icon: Sparkles },
   { id: "findings", label: "Review Findings", blurb: "Evidence-backed sections", icon: Search },
   { id: "risk", label: "Risk Story", blurb: "Narrative explanation", icon: Compass },
   { id: "quote", label: "Quote", blurb: "Pricing workspace", icon: DollarSign },
   { id: "decision", label: "Decision", blurb: "Recommendation & conditions", icon: Gavel },
   { id: "audit", label: "Audit Trail", blurb: "Chronological log", icon: ClipboardList },
+  { id: "brief", label: "AI Brief", blurb: "Executive summary", icon: Sparkles },
 ];
 
-export function JourneySteps({ unlockedCount }: { unlockedCount: number }) {
-  const [active, setActive] = useState("brief");
+export function JourneySteps({ unlockedCount: _unlockedCount }: { unlockedCount?: number }) {
+  const [active, setActive] = useState<string>(STEPS[0].id);
+  // How many tabs the AI has finished filling. The tab at index === filledCount
+  // is the one currently being filled and gets the blue glow.
+  const [filledCount, setFilledCount] = useState(0);
+  const activeIdx = STEPS.findIndex((s) => s.id === active);
+
+  useEffect(() => {
+    if (filledCount >= STEPS.length) return;
+    const t = window.setTimeout(() => {
+      setFilledCount((n) => {
+        const next = Math.min(STEPS.length, n + 1);
+        // Auto-advance the visible tab so the user can watch content stream in.
+        if (next < STEPS.length) setActive(STEPS[next].id);
+        else setActive(STEPS[STEPS.length - 1].id);
+        return next;
+      });
+    }, 3400);
+    return () => window.clearTimeout(t);
+  }, [filledCount]);
 
   return (
     <div className="rounded-2xl border border-mist/70 bg-white overflow-hidden">
       {/* Stepper header */}
       <div className="flex items-stretch border-b border-mist/60 bg-snow/40 overflow-x-auto">
         {STEPS.map((s, i) => {
-          const done = i < unlockedCount;
+          const done = i < filledCount;
+          const filling = i === filledCount && filledCount < STEPS.length;
           const isActive = active === s.id;
           const Icon = s.icon;
           return (
             <button
               key={s.id}
               onClick={() => setActive(s.id)}
-              className={`group flex-1 min-w-[140px] flex items-center gap-2.5 px-4 py-3.5 border-r border-mist/60 last:border-r-0 transition-colors relative ${
+              className={`group flex-1 min-w-[140px] flex items-center gap-2.5 px-4 py-3.5 border-r border-mist/60 last:border-r-0 transition-all relative ${
                 isActive ? "bg-white" : "hover:bg-white/70"
-              }`}
+              } ${filling ? "animate-tab-glow z-10 bg-white" : ""}`}
             >
               <div
-                className={`grid h-7 w-7 place-items-center rounded-full text-[11px] font-semibold shrink-0 ${
+                className={`grid h-7 w-7 place-items-center rounded-full text-[11px] font-semibold shrink-0 transition-colors ${
+                  done ? "bg-leaf text-white" :
+                  filling ? "bg-electric text-white" :
                   isActive ? "bg-electric text-white" :
-                  done ? "bg-leaf/15 text-leaf" :
                   "bg-mist/60 text-fog"
                 }`}
               >
-                {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                {done ? <CheckCircle2 className="h-3.5 w-3.5" /> :
+                 filling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> :
+                 <Icon className="h-3.5 w-3.5" />}
               </div>
               <div className="text-left min-w-0">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog">Step {i + 1}</div>
-                <div className={`text-[12.5px] font-semibold truncate ${isActive ? "text-ink" : done ? "text-ink" : "text-smoke"}`}>
+                <div className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${filling ? "text-electric" : "text-fog"}`}>
+                  {filling ? "Filling…" : done ? "Done" : `Step ${i + 1}`}
+                </div>
+                <div className={`text-[12.5px] font-semibold truncate ${
+                  filling ? "text-electric" :
+                  isActive || done ? "text-ink" :
+                  "text-smoke"
+                }`}>
                   {s.label}
                 </div>
               </div>
@@ -62,7 +92,7 @@ export function JourneySteps({ unlockedCount }: { unlockedCount: number }) {
         })}
       </div>
 
-      <div className="p-6">
+      <div key={active} className="p-6 animate-tab-content">
         {active === "brief" && <StepBrief />}
         {active === "findings" && <StepFindings />}
         {active === "risk" && <StepRisk />}
@@ -73,6 +103,7 @@ export function JourneySteps({ unlockedCount }: { unlockedCount: number }) {
     </div>
   );
 }
+
 
 /* ─────────────── Step 1 · Brief ─────────────── */
 
