@@ -587,126 +587,82 @@ function verdictBadge(v: Verdict) {
   }
 }
 
-/* ─────────────────────── Mission Control (rebuilt) ─────────────────────── */
-
-type LogLine = { agent: string; icon: ComponentType<{ className?: string }>; text: string; tone: "ok" | "warn" | "info"; t: string };
+/* ─────────────────────── Mission Control (redesigned) ─────────────────────── */
 
 function MissionControl({ agents }: { agents: Agent[] }) {
-  const completed = agents.filter((a) => a.status === "completed").length;
-  const running = agents.filter((a) => a.status === "running").length;
-  const queued = agents.filter((a) => a.status === "queued").length;
-
-  // Live metrics
-  const [tokens, setTokens] = useState(12480);
-  const [tps, setTps] = useState(184);
-  const [elapsed, setElapsed] = useState(126); // seconds
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setTokens((t) => t + Math.floor(80 + Math.random() * 260));
-      setTps(() => 140 + Math.floor(Math.random() * 120));
-      setElapsed((s) => s + 1);
-    }, 1000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  // Rolling reasoning stream
-  const streamBase: LogLine[] = useMemo(() => [
-    { agent: "Doc",       icon: FileText, text: "Parsed ACORD 140 · 312 fields extracted",           tone: "ok",   t: "09:41:12" },
-    { agent: "Identity",  icon: Shield,   text: "Cross-checking EIN with Secretary of State registry", tone: "info", t: "09:41:29" },
-    { agent: "Identity",  icon: Shield,   text: "Match confirmed · Peninsula Marina Group LLC",       tone: "ok",   t: "09:41:38" },
-    { agent: "Property",  icon: Home,     text: "Requesting aerial imagery for 27.7826° N, -97.3961° W", tone: "info", t: "09:42:04" },
-    { agent: "Property",  icon: Home,     text: "Roof age estimated 8–11 yrs from imagery diff",       tone: "info", t: "09:42:11" },
-    { agent: "Doc",       icon: FileText, text: "Discrepancy · street suffix “St.” vs “Street”",      tone: "warn", t: "09:42:18" },
-    { agent: "Property",  icon: Home,     text: "Computing replacement cost via MSB model…",          tone: "info", t: "09:42:24" },
-  ], []);
-  const [cursor, setCursor] = useState(streamBase.length);
-  useEffect(() => {
-    const extras = [
-      "Verifying construction class ISO 3 · Joisted Masonry",
-      "Wind zone lookup · Tier 1 coastal · deductible eligible",
-      "Comparing prior carrier loss runs · 5-year clean",
-      "Flagging potential COPE gap · sprinkler certificate missing",
-      "Handoff → CAT Risk Agent queued",
-    ];
-    const id = window.setInterval(() => {
-      setCursor((n) => n + 1);
-    }, 2400);
-    void extras;
-    return () => window.clearInterval(id);
-  }, []);
-  const stream = streamBase.slice(-Math.min(6, cursor));
+  const completed = agents.filter((a) => a.status === "completed");
+  const running = agents.find((a) => a.status === "running");
+  const upcoming = agents.filter((a) => a.status === "queued");
 
   return (
-    <div className="sticky top-[76px] rounded-2xl border border-mist/70 bg-white overflow-hidden self-start shadow-sm flex flex-col" style={{ height: "calc(100vh - 96px)" }}>
-      {/* Header: neural mesh + live metrics */}
-      <div className="relative overflow-hidden border-b border-mist/60 bg-gradient-to-br from-[#0d111b] via-[#141a2a] to-[#0d111b] text-white px-5 pt-4 pb-4">
-        <NeuralBackdrop />
-        <div className="relative flex items-center gap-2.5">
-          <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white">
-            <Sparkles className="h-4 w-4" />
-            <span className="absolute inset-0 rounded-xl border border-electric/60 animate-glow-ring" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-electric/90">Mission Control</div>
-            <div className="text-[12px] text-white/70 leading-tight">Autonomous agents · orchestrating in real time</div>
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-leaf/20 border border-leaf/40 px-2 py-0.5 text-[10px] font-semibold text-leaf">
-            <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" /> LIVE
-          </span>
-        </div>
+    <div
+      className="sticky top-[76px] rounded-2xl border border-mist/70 bg-white overflow-hidden self-start shadow-sm flex flex-col"
+      style={{ height: "calc(100vh - 96px)" }}
+    >
+      {/* Header */}
+      <div className="px-5 pt-4 pb-3 flex items-center gap-2">
+        <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-electric">Mission Control</div>
+        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-leaf/12 border border-leaf/30 px-2 py-0.5 text-[10px] font-semibold text-leaf">
+          <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" /> Live
+        </span>
+      </div>
 
-        {/* Metrics strip */}
-        <div className="relative mt-3 grid grid-cols-4 gap-2">
-          <Metric label="Agents" value={`${running + completed}/${agents.length}`} accent="electric" sub={`${running} running`} />
-          <Metric label="Tokens" value={tokens.toLocaleString()} accent="iris" sub={`${tps}/s`} />
-          <Metric label="Elapsed" value={fmtTime(elapsed)} accent="leaf" sub="↑ 3× human" />
-          <Metric label="Findings" value={"24"} accent="coral" sub="3 discrep." />
+      {/* Hero banner */}
+      <div className="mx-4 relative overflow-hidden rounded-xl bg-gradient-to-br from-[#0d111b] via-[#141a2a] to-[#0d111b] text-white px-4 py-4 border border-white/5">
+        <NeuralPulseBanner />
+        <div className="relative flex items-center gap-2 text-[11.5px] text-white/90">
+          <Sparkles className="h-3.5 w-3.5 text-electric" />
+          <span><span className="font-semibold text-white">AI agents</span> are collaborating in real-time</span>
         </div>
       </div>
 
-      {/* Live reasoning stream (terminal-ish) */}
-      <div className="border-b border-mist/60 bg-[#0d111b] text-white/85 font-mono">
-        <div className="px-4 py-2 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-white/50">
-            <Activity className="h-3 w-3 text-electric" /> Reasoning stream
-          </div>
-          <div className="flex items-center gap-1 text-[9.5px] text-white/40">
-            <span className="h-1.5 w-1.5 rounded-full bg-coral" />
-            <span className="h-1.5 w-1.5 rounded-full bg-[#f5a623]" />
-            <span className="h-1.5 w-1.5 rounded-full bg-leaf" />
-          </div>
-        </div>
-        <div className="px-4 py-2.5 space-y-1 text-[10.5px] leading-relaxed max-h-[168px] overflow-hidden">
-          {stream.map((l, i) => {
-            const I = l.icon;
-            const tone = l.tone === "warn" ? "text-[#f5a623]" : l.tone === "ok" ? "text-leaf" : "text-electric";
-            const isLast = i === stream.length - 1;
-            return (
-              <div key={`${l.t}-${i}`} className="flex items-start gap-2 animate-fade-up">
-                <span className="text-white/30 tabular-nums">{l.t.slice(-5)}</span>
-                <I className={`h-3 w-3 mt-[2px] ${tone} flex-shrink-0`} />
-                <span className={`font-semibold ${tone} whitespace-nowrap`}>{l.agent}</span>
-                <span className="text-white/40">›</span>
-                <span className={`${isLast ? "caret" : ""} text-white/85`}>{l.text}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-5">
+        {/* Completed first (per user preference) */}
+        {completed.length > 0 && (
+          <section>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-fog mb-2 flex items-center gap-1.5">
+              Completed <span className="text-fog/70 font-medium normal-case tracking-normal">· {completed.length}</span>
+            </div>
+            <div className="space-y-1.5">
+              {completed.map((a) => <CompletedRow key={a.id} a={a} />)}
+            </div>
+          </section>
+        )}
 
-      {/* Agent roster */}
-      <div className="flex-1 overflow-y-auto px-3 pt-3 pb-3">
-        <div className="flex items-center justify-between px-2 pb-2">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-fog">Agent Roster</div>
-          <div className="flex items-center gap-2 text-[10px] text-smoke">
-            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-leaf" /> {completed} done</span>
-            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse-dot" /> {running} live</span>
-            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-mist" /> {queued}</span>
+        {/* Currently running */}
+        {running && (
+          <section>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric mb-2 flex items-center gap-1.5">
+              <Radio className="h-3 w-3 animate-pulse-dot" /> Currently Running
+            </div>
+            <CurrentAgentCard a={running} />
+          </section>
+        )}
+
+        {/* Upcoming */}
+        {upcoming.length > 0 && (
+          <section>
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-fog mb-2 flex items-center gap-1.5">
+              Upcoming <span className="text-fog/70 font-medium normal-case tracking-normal">· {upcoming.length}</span>
+            </div>
+            <div className="space-y-1.5">
+              {upcoming.map((a) => <QueuedRow key={a.id} a={a} />)}
+            </div>
+          </section>
+        )}
+
+        {/* Agent network */}
+        <section className="rounded-xl border border-mist/70 bg-snow/40 px-4 py-3">
+          <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric mb-2">Agent Network</div>
+          <div className="flex items-center gap-3 text-[11.5px] text-smoke">
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" />7 Online</span>
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse-dot" />5 Busy</span>
+            <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-mist" />12 In Queue</span>
           </div>
-        </div>
-        <div className="space-y-1.5">
-          {agents.map((a) => <AgentRow key={a.id} a={a} />)}
-        </div>
+          <button className="mt-2 text-[11px] font-semibold text-electric hover:underline inline-flex items-center gap-1">
+            View all agents <ChevronRight className="h-3 w-3" />
+          </button>
+        </section>
       </div>
 
       {/* Ask AI */}
@@ -717,107 +673,150 @@ function MissionControl({ agents }: { agents: Agent[] }) {
             className="flex-1 bg-transparent text-[12px] focus:outline-none placeholder:text-fog" />
           <button className="grid h-6 w-6 place-items-center rounded-full bg-[#0d111b] text-white"><Send className="h-3 w-3" /></button>
         </div>
-        <div className="mt-1.5 text-[9.5px] text-fog inline-flex items-center gap-1">
-          <Info className="h-2.5 w-2.5" /> Agents can reference all 14 documents in this submission
-        </div>
       </div>
     </div>
   );
 }
 
-function fmtTime(s: number) {
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  return `${m}:${r.toString().padStart(2, "0")}`;
-}
-
-function Metric({ label, value, sub, accent }: { label: string; value: string; sub?: string; accent: "electric" | "iris" | "leaf" | "coral" }) {
-  const c = { electric: "text-electric", iris: "text-iris", leaf: "text-leaf", coral: "text-coral" }[accent];
+function CompletedRow({ a }: { a: Agent }) {
+  const Icon = a.icon;
   return (
-    <div className="rounded-lg bg-white/5 border border-white/10 px-2 py-1.5 backdrop-blur">
-      <div className="text-[9px] uppercase tracking-widest text-white/50">{label}</div>
-      <div className={`mt-0.5 text-[13px] font-semibold tabular-nums ${c}`}>{value}</div>
-      {sub && <div className="text-[9px] text-white/40 tabular-nums">{sub}</div>}
+    <div className="flex items-center gap-2.5 rounded-xl border border-mist/70 bg-white px-3 py-2 animate-fade-up">
+      <div className="grid h-8 w-8 place-items-center rounded-lg bg-leaf/12 text-leaf">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[12px] font-semibold text-ink truncate">{a.name}</div>
+        <span className="inline-flex items-center gap-1 rounded-md bg-leaf/12 px-1.5 py-[1px] text-[9.5px] font-semibold text-leaf">
+          <CheckCircle2 className="h-2.5 w-2.5" /> Completed
+        </span>
+      </div>
+      {a.time && <div className="text-[10px] text-fog tabular-nums font-mono">{a.time}</div>}
     </div>
   );
 }
 
-function NeuralBackdrop() {
-  // Decorative animated mesh — pulsing dots + connecting lines
-  const nodes = [
-    { x: 12, y: 20 }, { x: 42, y: 12 }, { x: 78, y: 24 },
-    { x: 24, y: 62 }, { x: 60, y: 70 }, { x: 88, y: 58 },
-  ];
+function QueuedRow({ a }: { a: Agent }) {
+  const Icon = a.icon;
   return (
-    <svg className="absolute inset-0 h-full w-full opacity-40 pointer-events-none" viewBox="0 0 100 80" preserveAspectRatio="none">
+    <div className="flex items-center gap-2.5 rounded-xl border border-mist/60 bg-snow/50 px-3 py-2">
+      <div className="grid h-8 w-8 place-items-center rounded-lg bg-mist/50 text-smoke">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[12px] font-medium text-smoke truncate">{a.name}</div>
+      </div>
+      <span className="inline-flex items-center rounded-md border border-mist bg-white px-1.5 py-[1px] text-[9.5px] font-semibold text-fog uppercase tracking-wider">
+        Queued
+      </span>
+    </div>
+  );
+}
+
+function CurrentAgentCard({ a }: { a: Agent }) {
+  const Icon = a.icon;
+  const items = a.lines;
+  const [step, setStep] = useState(2);
+  const [seconds, setSeconds] = useState(135);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setStep((s) => (s >= items.length ? s : s + 1));
+      setSeconds((s) => s + 5);
+    }, 3200);
+    return () => window.clearInterval(id);
+  }, [items.length]);
+
+  const pct = Math.min(100, Math.round((step / items.length) * 100));
+  const mm = Math.floor(seconds / 60);
+  const ss = (seconds % 60).toString().padStart(2, "0");
+
+  return (
+    <div className="relative rounded-2xl border-2 border-electric/40 bg-gradient-to-br from-white via-ice/25 to-white p-4 animate-tab-glow">
+      <div className="flex items-start gap-3">
+        <div className="relative grid h-11 w-11 place-items-center rounded-xl bg-electric/12 text-electric flex-shrink-0">
+          <Icon className="h-5 w-5" />
+          <span className="absolute inset-0 rounded-xl border-2 border-electric/60 animate-ripple-once pointer-events-none" />
+          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-electric animate-pulse-dot ring-2 ring-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="text-[13px] font-semibold text-ink truncate">{a.name}</div>
+            <div className="ml-auto inline-flex items-center gap-1 text-[10.5px] font-mono font-semibold text-electric tabular-nums">
+              <Radio className="h-3 w-3" /> {mm}:{ss}
+            </div>
+          </div>
+          <div className="text-[11.5px] text-smoke">Analyzing property data</div>
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-1.5 pl-1">
+        {items.map((it, i) => {
+          const done = i < step;
+          const current = i === step;
+          return (
+            <div
+              key={i}
+              className={`flex items-center gap-2 text-[12px] transition-colors ${
+                current ? "animate-fade-up" : ""
+              }`}
+            >
+              {done ? (
+                <CheckCircle2 className="h-3.5 w-3.5 text-leaf flex-shrink-0" />
+              ) : current ? (
+                <span className="relative h-3.5 w-3.5 grid place-items-center flex-shrink-0">
+                  <span className="h-2 w-2 rounded-full bg-electric" />
+                  <span className="absolute inset-0 rounded-full border border-electric/60 animate-ripple-once" />
+                </span>
+              ) : (
+                <Circle className="h-3.5 w-3.5 text-mist flex-shrink-0" />
+              )}
+              <span className={done ? "text-smoke line-through decoration-mist" : current ? "text-ink font-medium" : "text-fog"}>
+                {it.text}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-fog">Progress</div>
+        <div className="flex-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-electric to-iris trail-flow transition-[width] duration-700"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="text-[11px] font-semibold text-electric tabular-nums">{pct}%</div>
+      </div>
+    </div>
+  );
+}
+
+function NeuralPulseBanner() {
+  const nodes = Array.from({ length: 9 }, (_, i) => ({ x: 6 + i * 11, y: 50 + Math.sin(i * 1.1) * 14 }));
+  return (
+    <svg className="absolute inset-0 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
       <defs>
-        <linearGradient id="ln" x1="0" x2="1">
+        <linearGradient id="ncl" x1="0" x2="1">
           <stop offset="0%" stopColor="#0098f2" stopOpacity="0" />
-          <stop offset="50%" stopColor="#0098f2" stopOpacity="0.8" />
+          <stop offset="50%" stopColor="#0098f2" stopOpacity="0.9" />
           <stop offset="100%" stopColor="#6c56fc" stopOpacity="0" />
         </linearGradient>
       </defs>
-      {nodes.map((n, i) => nodes.slice(i + 1).map((m, j) => (
-        <line key={`${i}-${j}`} x1={n.x} y1={n.y} x2={m.x} y2={m.y} stroke="url(#ln)" strokeWidth="0.3" />
-      )))}
+      {nodes.slice(0, -1).map((n, i) => (
+        <line key={i} x1={n.x} y1={n.y} x2={nodes[i + 1].x} y2={nodes[i + 1].y} stroke="url(#ncl)" strokeWidth="0.5" />
+      ))}
       {nodes.map((n, i) => (
-        <circle key={i} cx={n.x} cy={n.y} r="1.2" fill="#0098f2">
-          <animate attributeName="opacity" values="0.4;1;0.4" dur={`${1.6 + i * 0.2}s`} repeatCount="indefinite" />
+        <circle key={i} cx={n.x} cy={n.y} r="1.4" fill="#0098f2">
+          <animate attributeName="r" values="1;2.4;1" dur={`${1.4 + (i % 3) * 0.35}s`} repeatCount="indefinite" begin={`${i * 0.15}s`} />
+          <animate attributeName="opacity" values="0.4;1;0.4" dur={`${1.4 + (i % 3) * 0.35}s`} repeatCount="indefinite" begin={`${i * 0.15}s`} />
         </circle>
       ))}
     </svg>
   );
 }
 
-function AgentRow({ a }: { a: Agent }) {
-  const Icon = a.icon;
-  const s = a.status;
-  const latest = a.lines[a.lines.length - 1]?.text;
-  const ringCls =
-    s === "completed" ? "border-leaf/40 bg-leaf/10 text-leaf" :
-    s === "running"   ? "border-electric/50 bg-electric/10 text-electric animate-glow-ring" :
-                        "border-mist bg-snow text-fog";
-  const wrapCls =
-    s === "running" ? "border-electric/30 bg-gradient-to-r from-ice/40 to-white" :
-    s === "queued"  ? "border-mist/60 bg-snow/40 opacity-75" :
-                      "border-mist/70 bg-white";
-  const badgeCls =
-    s === "completed" ? "bg-leaf/12 text-leaf" :
-    s === "running"   ? "bg-electric/12 text-electric" :
-                        "bg-mist/60 text-smoke";
-  const label = s === "completed" ? "Done" : s === "running" ? "Running" : "Queued";
-
-  return (
-    <div className={`rounded-xl border px-2.5 py-2 transition-all ${wrapCls}`}>
-      <div className="flex items-center gap-2">
-        <div className={`relative grid h-7 w-7 place-items-center rounded-lg border ${ringCls}`}>
-          <Icon className="h-3.5 w-3.5" />
-          {s === "running" && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-electric animate-pulse-dot" />}
-          {s === "completed" && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-leaf" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <div className="text-[11.5px] font-semibold text-ink truncate">{a.name}</div>
-            <span className={`inline-flex items-center rounded-full px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-wider ${badgeCls}`}>
-              {label}
-            </span>
-          </div>
-          <div className={`text-[10.5px] truncate ${s === "queued" ? "text-fog" : "text-smoke"} ${s === "running" ? "caret" : ""}`}>
-            {latest ?? "Waiting for upstream agent…"}
-          </div>
-        </div>
-        {a.time && s !== "queued" && (
-          <div className="text-[9.5px] text-fog tabular-nums flex-shrink-0">{a.time.slice(-5)}</div>
-        )}
-      </div>
-      {s === "running" && a.progress !== undefined && (
-        <div className="mt-1.5 h-[3px] rounded-full bg-mist/60 overflow-hidden">
-          <div className="h-full rounded-full bg-gradient-to-r from-electric to-iris trail-flow" style={{ width: `${a.progress}%` }} />
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ─────────────────────── Floating Ask AI ─────────────────────── */
 

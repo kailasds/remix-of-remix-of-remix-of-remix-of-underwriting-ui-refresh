@@ -205,12 +205,23 @@
   0% { background-color: rgba(0,152,242,0.18); }
   100% { background-color: transparent; }
 }
+@keyframes tab-glow {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(0,152,242,0.28), 0 0 22px rgba(0,152,242,0.30); }
+  50%      { box-shadow: 0 0 0 2px rgba(0,152,242,0.55), 0 0 34px rgba(0,152,242,0.55); }
+}
+@keyframes tab-content-in {
+  from { opacity: 0; transform: translateY(6px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+}
 
 .animate-fade-up { animation: fade-up 0.4s ease-out both; }
 .animate-pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
 .animate-glow-ring { animation: glow-ring 1.8s ease-in-out infinite; }
 .animate-ripple-once { animation: ripple-once 1.2s ease-out forwards; }
 .animate-rec-flash { animation: rec-flash 1.6s ease-out both; }
+.animate-tab-glow { animation: tab-glow 1.8s ease-in-out infinite; }
+.animate-tab-content { animation: tab-content-in 0.45s ease-out both; }
+
 .animate-shimmer {
   background: linear-gradient(90deg, #f0f2f5 0%, #fafbfc 50%, #f0f2f5 100%);
   background-size: 800px 100%;
