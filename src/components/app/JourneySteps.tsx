@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ComponentType } from "react";
+import { Fragment, useMemo, useState, type ComponentType } from "react";
 import {
   Sparkles, FileText, Search, Layers, DollarSign, Gavel, ClipboardList,
   CheckCircle2, AlertTriangle, Info, Zap, TrendingUp, ShieldCheck, ChevronDown,
@@ -24,27 +24,20 @@ const STEPS: Step[] = [
   { id: "brief", label: "AI Brief", blurb: "Executive summary", icon: Sparkles },
 ];
 
-export function JourneySteps({ unlockedCount: _unlockedCount }: { unlockedCount?: number }) {
-  const [active, setActive] = useState<string>(STEPS[0].id);
-  // How many tabs the AI has finished filling. The tab at index === filledCount
-  // is the one currently being filled and gets the blue glow.
-  const [filledCount, setFilledCount] = useState(0);
-  const activeIdx = STEPS.findIndex((s) => s.id === active);
+// How many phases the journey auto-advances through, and how long each takes.
+// Owned by the parent (CaseWorkspace) so Mission Control's agents can be driven
+// by the exact same clock — see PHASE_DURATION_MS / STEP_IDS there.
+export const STEP_IDS = STEPS.map((s) => s.id);
 
-  useEffect(() => {
-    if (filledCount >= STEPS.length) return;
-    const t = window.setTimeout(() => {
-      setFilledCount((n) => {
-        const next = Math.min(STEPS.length, n + 1);
-        // Auto-advance the visible tab so the user can watch content stream in.
-        if (next < STEPS.length) setActive(STEPS[next].id);
-        else setActive(STEPS[STEPS.length - 1].id);
-        return next;
-      });
-    }, 3400);
-    return () => window.clearTimeout(t);
-  }, [filledCount]);
-
+export function JourneySteps({
+  filledCount,
+  active,
+  onSelect,
+}: {
+  filledCount: number;
+  active: string;
+  onSelect: (id: string) => void;
+}) {
   return (
     <div className="rounded-2xl border border-mist/70 bg-white overflow-hidden">
       {/* Stepper header */}
@@ -57,7 +50,7 @@ export function JourneySteps({ unlockedCount: _unlockedCount }: { unlockedCount?
           return (
             <button
               key={s.id}
-              onClick={() => setActive(s.id)}
+              onClick={() => onSelect(s.id)}
               className={`group flex-1 min-w-[140px] flex items-center gap-2.5 px-4 py-3.5 border-r border-mist/60 last:border-r-0 transition-all relative ${
                 isActive ? "bg-white" : "hover:bg-white/70"
               } ${filling ? "animate-tab-glow z-10 bg-white" : ""}`}
@@ -390,21 +383,6 @@ function SourceChip({ label }: { label: string }) {
   );
 }
 
-function ConfidenceBar({ value }: { value: number }) {
-  const tone = value >= 95 ? "bg-leaf" : value >= 85 ? "bg-leaf/80" : "bg-amber-500";
-  return (
-    <div className="w-[110px]">
-      <div className="text-[11.5px] font-semibold text-ink tabular-nums">{value}%</div>
-      <div className="mt-1 h-1 rounded-full bg-mist/60 overflow-hidden">
-        <div
-          className={`h-full rounded-full ${tone} transition-[width] duration-700 ease-out`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 function StatusBadge({ status }: { status: RowStatus }) {
   const map: Record<RowStatus, string> = {
     review: "border-amber-300/60 bg-amber-100/70 text-amber-800",
@@ -622,7 +600,6 @@ function StepFindings() {
               <th className="text-left px-4 py-2.5">Discrepancy</th>
               <th className="text-left px-4 py-2.5">Sources (Document)</th>
               <th className="text-left px-4 py-2.5">AI Recommendation</th>
-              <th className="text-left px-4 py-2.5">AI Confidence</th>
               <th className="text-left px-4 py-2.5">Status</th>
               <th className="px-2 py-2.5" />
             </tr>
@@ -665,7 +642,6 @@ function StepFindings() {
                         <div className="text-[10.5px] text-fog mt-0.5">{row.aiRecommendationSub}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3"><ConfidenceBar value={row.aiConfidence} /></td>
                     <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
                     <td className="px-2 py-3 text-fog">
                       <MoreVertical className="h-3.5 w-3.5" />
@@ -679,7 +655,7 @@ function StepFindings() {
             })}
             {paged.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-[12.5px] text-smoke">
+                <td colSpan={7} className="px-4 py-10 text-center text-[12.5px] text-smoke">
                   No findings match your filters.
                 </td>
               </tr>

@@ -7,7 +7,7 @@ import {
   SlidersHorizontal, Send, MapPin, Building2, FileCheck2, Activity,
   Radio, AlertTriangle, Zap, Info,
 } from "lucide-react";
-import { JourneySteps } from "../components/app/JourneySteps";
+import { JourneySteps, STEP_IDS } from "../components/app/JourneySteps";
 import { cases, formatUSD } from "../lib/mock";
 
 export const Route = createFileRoute("/_app/case/$id")({
@@ -30,6 +30,9 @@ const PHASES: { key: PhaseKey; label: string; icon: ComponentType<{ className?: 
 ];
 
 /* ─────────────────────── Mission Control agents ─────────────────────── */
+// Agent i is wired to STEP_IDS[i] (see JourneySteps.tsx): it runs while that
+// tab is being filled, and completes the instant the journey clock advances
+// to the next tab — so the two panels always animate in lockstep.
 
 type AgentStatus = "completed" | "running" | "queued";
 
@@ -37,16 +40,25 @@ type Agent = {
   id: string;
   name: string;
   icon: ComponentType<{ className?: string }>;
+  blurb: string;
   time?: string;
   status: AgentStatus;
+  steps: string[];
   lines: { text: string; tone?: "ok" | "warn" | "info" }[];
-  progress?: number;
 };
 
-const INITIAL_AGENTS: Agent[] = [
+const PHASE_DURATION_MS = 3400;
+
+const AGENT_DEFS: Omit<Agent, "status" | "time">[] = [
   {
-    id: "doc", name: "Document Intelligence", icon: FileText, time: "09:41:12",
-    status: "completed",
+    id: "doc", name: "Document Intelligence", icon: FileText,
+    blurb: "Extracting and reconciling document data",
+    steps: [
+      "Parsing ACORD 125 and 140",
+      "Running OCR on scanned pages",
+      "Extracting 312 data points",
+      "Cross-checking documents for discrepancies",
+    ],
     lines: [
       { text: "Processed 14 documents", tone: "ok" },
       { text: "Extracted 312 data points", tone: "ok" },
@@ -55,8 +67,14 @@ const INITIAL_AGENTS: Agent[] = [
     ],
   },
   {
-    id: "identity", name: "Business Identity Agent", icon: Shield, time: "09:41:38",
-    status: "completed",
+    id: "identity", name: "Business Identity Agent", icon: Shield,
+    blurb: "Verifying business identity and registration",
+    steps: [
+      "Verifying EIN and business registration",
+      "Matching Secretary of State records",
+      "Checking for adverse business records",
+      "Confirming legal entity name",
+    ],
     lines: [
       { text: "Verified EIN 27-1234567", tone: "ok" },
       { text: "Matched with Secretary of State", tone: "ok" },
@@ -65,34 +83,65 @@ const INITIAL_AGENTS: Agent[] = [
     ],
   },
   {
-    id: "property", name: "Property Intelligence", icon: Home, time: "09:42:15",
-    status: "running", progress: 12,
+    id: "property", name: "Property Intelligence", icon: Home,
+    blurb: "Analyzing property data",
+    steps: [
+      "Analyzing aerial imagery",
+      "Verifying building footprint",
+      "Estimating replacement cost",
+      "Checking construction details",
+    ],
     lines: [
-      { text: "Analyzing aerial imagery" },
-      { text: "Verifying building footprint" },
-      { text: "Estimating replacement cost" },
-      { text: "Checking construction details" },
+      { text: "Verified building footprint via aerial imagery", tone: "ok" },
+      { text: "Estimated replacement cost at $3.91M", tone: "ok" },
+      { text: "Confirmed ISO Class 4 construction", tone: "ok" },
+      { text: "Confidence 94%", tone: "ok" },
     ],
   },
   {
-    id: "cat", name: "CAT Risk Agent", icon: Cloud, status: "queued",
+    id: "cat", name: "CAT Risk Agent", icon: Cloud,
+    blurb: "Assessing catastrophe exposure",
+    steps: [
+      "Pulling FEMA flood zone data",
+      "Modeling wind & hail exposure",
+      "Cross-checking hurricane history",
+      "Scoring catastrophe exposure",
+    ],
     lines: [
-      { text: "Waiting for property analysis" },
-      { text: "Will assess flood, wind, hail" },
+      { text: "Modeled 1-in-100 wind loss at $214K", tone: "ok" },
+      { text: "Flagged coastal flood exposure", tone: "warn" },
+      { text: "Confirmed no hurricane losses in 5 years", tone: "ok" },
+      { text: "Confidence 91%", tone: "ok" },
     ],
   },
   {
-    id: "fraud", name: "Fraud Detection Agent", icon: Shield, status: "queued",
+    id: "fraud", name: "Fraud Detection Agent", icon: Shield,
+    blurb: "Screening for fraud and loss-history signals",
+    steps: [
+      "Screening for fraud indicators",
+      "Validating loss history",
+      "Cross-referencing claims database",
+      "Flagging anomalies for review",
+    ],
     lines: [
-      { text: "Will screen for fraud indicators" },
-      { text: "Will validate loss history" },
+      { text: "No fraud indicators detected", tone: "ok" },
+      { text: "Loss history validated across 3 claims", tone: "ok" },
+      { text: "Confidence 99%", tone: "ok" },
     ],
   },
   {
-    id: "pricing", name: "Pricing Agent", icon: DollarSign, status: "queued",
+    id: "pricing", name: "Pricing Agent", icon: DollarSign,
+    blurb: "Calculating final premium",
+    steps: [
+      "Calculating base premium",
+      "Running market comparison",
+      "Applying endorsement pricing",
+      "Finalizing rate indication",
+    ],
     lines: [
-      { text: "Will calculate final premium" },
-      { text: "Will run market comparison" },
+      { text: "Calculated premium at $148,200", tone: "ok" },
+      { text: "Rate 1.68% — 4% below benchmark", tone: "ok" },
+      { text: "Confidence 95%", tone: "ok" },
     ],
   },
 ];
@@ -189,25 +238,46 @@ const CATEGORY_TABS: { key: Finding["category"] | "all"; label: string }[] = [
 
 function CaseWorkspace() {
   const { c } = Route.useLoaderData();
-  const [agents, setAgents] = useState<Agent[]>(INITIAL_AGENTS);
   const [confidence, setConfidence] = useState(72);
   const [askOpen, setAskOpen] = useState(false);
+  const [mcCollapsed, setMcCollapsed] = useState(true);
   const [activeTab, setActiveTab] = useState<Finding["category"] | "all">("all");
   const [showDiscOnly, setShowDiscOnly] = useState(true);
   const [query, setQuery] = useState("");
 
-  // Progressive animation for Property Intelligence agent
+  // Journey clock — the single source of truth shared by the tab stepper and
+  // Mission Control. filledCount tabs are "Done"; the tab at index === filledCount
+  // is being filled, and the agent at the same index is the one "running".
+  const [filledCount, setFilledCount] = useState(0);
+  const [activeStep, setActiveStep] = useState<string>(STEP_IDS[0]);
+  const startTimeRef = useRef(Date.now());
+
+  useEffect(() => {
+    if (filledCount >= STEP_IDS.length) return;
+    const t = window.setTimeout(() => {
+      setFilledCount((n) => {
+        const next = Math.min(STEP_IDS.length, n + 1);
+        setActiveStep(STEP_IDS[Math.min(next, STEP_IDS.length - 1)]);
+        return next;
+      });
+    }, PHASE_DURATION_MS);
+    return () => window.clearTimeout(t);
+  }, [filledCount]);
+
   useEffect(() => {
     const id = window.setInterval(() => {
-      setAgents((prev) => prev.map((a) => {
-        if (a.id !== "property") return a;
-        const next = Math.min(96, (a.progress ?? 0) + 3 + Math.random() * 4);
-        return { ...a, progress: next };
-      }));
       setConfidence((c) => Math.min(88, c + (Math.random() > 0.55 ? 1 : 0)));
     }, 900);
     return () => window.clearInterval(id);
   }, []);
+
+  const agents: Agent[] = useMemo(() => AGENT_DEFS.map((def, i) => {
+    const status: AgentStatus = filledCount > i ? "completed" : filledCount === i ? "running" : "queued";
+    const time = status === "completed"
+      ? new Date(startTimeRef.current + (i + 1) * PHASE_DURATION_MS).toLocaleTimeString([], { hour12: false })
+      : undefined;
+    return { ...def, status, time };
+  }), [filledCount]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -235,12 +305,12 @@ function CaseWorkspace() {
       </div>
 
       {/* Stepper + Mission Control, then Findings on the left */}
-      <div className="mt-5 grid grid-cols-[1fr_400px] gap-6 items-start">
+      <div className={`mt-5 grid gap-6 items-start ${mcCollapsed ? "grid-cols-[1fr_64px]" : "grid-cols-[1fr_400px]"}`}>
         <div className="space-y-5">
-          <JourneySteps unlockedCount={6} />
+          <JourneySteps filledCount={filledCount} active={activeStep} onSelect={setActiveStep} />
         </div>
 
-        <MissionControl agents={agents} />
+        <MissionControl agents={agents} collapsed={mcCollapsed} onToggleCollapsed={() => setMcCollapsed((v) => !v)} />
       </div>
 
       <AskAiFab open={askOpen} onToggle={() => setAskOpen((v) => !v)} />
@@ -293,22 +363,19 @@ function CaseHeader({ c, confidence }: { c: (typeof cases)[number]; confidence: 
             <div className="mt-1 text-[16px] font-semibold text-ink">{formatUSD(148200)}</div>
             <div className="mt-0.5 text-[10.5px] text-smoke">vs Benchmark <span className="text-leaf font-semibold">↓ 4%</span></div>
           </div>
-          <button className="ml-1 inline-flex items-center gap-1.5 self-start rounded-full border border-mist bg-white px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-snow">
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Actions <ChevronDown className="h-3.5 w-3.5" />
-          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function ConfidenceRing({ value }: { value: number }) {
+function ConfidenceRing({ value, trackColor = "var(--mist)" }: { value: number; trackColor?: string }) {
   const r = 14;
   const c = 2 * Math.PI * r;
   const off = c - (value / 100) * c;
   return (
     <svg width="34" height="34" viewBox="0 0 34 34" className="-rotate-90">
-      <circle cx="17" cy="17" r={r} stroke="var(--mist)" strokeWidth="3" fill="none" />
+      <circle cx="17" cy="17" r={r} stroke={trackColor} strokeWidth="3" fill="none" />
       <circle cx="17" cy="17" r={r} stroke="var(--leaf)" strokeWidth="3" fill="none"
         strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
         style={{ transition: "stroke-dashoffset 500ms ease" }} />
@@ -589,28 +656,66 @@ function verdictBadge(v: Verdict) {
 
 /* ─────────────────────── Mission Control (redesigned) ─────────────────────── */
 
-function MissionControl({ agents }: { agents: Agent[] }) {
+function MissionControl({
+  agents, collapsed, onToggleCollapsed,
+}: { agents: Agent[]; collapsed: boolean; onToggleCollapsed: () => void }) {
   const completed = agents.filter((a) => a.status === "completed");
   const running = agents.find((a) => a.status === "running");
   const upcoming = agents.filter((a) => a.status === "queued");
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  if (collapsed) {
+    const RunningIcon = running?.icon ?? Sparkles;
+    return (
+      <button
+        onClick={onToggleCollapsed}
+        title="Expand Mission Control"
+        className="sticky top-[76px] flex w-16 flex-col items-center gap-3 self-start overflow-hidden rounded-2xl border border-mist/70 bg-white py-4 shadow-sm transition-colors hover:bg-snow/60"
+        style={{ height: "calc(100vh - 96px)" }}
+      >
+        <span className="grid h-8 w-8 place-items-center rounded-lg bg-electric/10 text-electric">
+          <ChevronLeft className="h-4 w-4" />
+        </span>
+        {running && (
+          <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-electric/12 text-electric">
+            <RunningIcon className="h-4.5 w-4.5" />
+            <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-electric animate-pulse-dot ring-2 ring-white" />
+          </span>
+        )}
+        <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric [writing-mode:vertical-rl] rotate-180">
+          Mission Control
+        </span>
+        <span className="mt-auto inline-flex items-center gap-1 rounded-full border border-leaf/30 bg-leaf/12 px-1.5 py-1 text-leaf">
+          <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" />
+        </span>
+      </button>
+    );
+  }
 
   return (
     <div
       className="sticky top-[76px] rounded-2xl border border-mist/70 bg-white overflow-hidden self-start shadow-sm flex flex-col"
       style={{ height: "calc(100vh - 96px)" }}
     >
-      {/* Header */}
-      <div className="px-5 pt-4 pb-3 flex items-center gap-2">
-        <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-electric">Mission Control</div>
-        <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-leaf/12 border border-leaf/30 px-2 py-0.5 text-[10px] font-semibold text-leaf">
-          <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" /> Live
-        </span>
-      </div>
-
-      {/* Hero banner */}
-      <div className="mx-4 relative overflow-hidden rounded-xl bg-gradient-to-br from-[#0d111b] via-[#141a2a] to-[#0d111b] text-white px-4 py-4 border border-white/5">
-        <NeuralPulseBanner />
-        <div className="relative flex items-center gap-2 text-[11.5px] text-white/90">
+      {/* Header (merged with live-activity banner) */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d111b] via-[#141a2a] to-[#0d111b] text-white px-5 pt-4 pb-4">
+        <DataStreamBanner />
+        <div className="relative flex items-center gap-2">
+          <div className="text-[11px] font-bold uppercase tracking-[0.22em] text-electric">Mission Control</div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-leaf/15 border border-leaf/30 px-2 py-0.5 text-[10px] font-semibold text-leaf">
+              <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" /> Live
+            </span>
+            <button
+              onClick={onToggleCollapsed}
+              title="Collapse Mission Control"
+              className="grid h-6 w-6 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+        <div className="relative mt-3 flex items-center gap-2 text-[11.5px] text-white/90">
           <Sparkles className="h-3.5 w-3.5 text-electric" />
           <span><span className="font-semibold text-white">AI agents</span> are collaborating in real-time</span>
         </div>
@@ -624,7 +729,14 @@ function MissionControl({ agents }: { agents: Agent[] }) {
               Completed <span className="text-fog/70 font-medium normal-case tracking-normal">· {completed.length}</span>
             </div>
             <div className="space-y-1.5">
-              {completed.map((a) => <CompletedRow key={a.id} a={a} />)}
+              {completed.map((a) => (
+                <CompletedRow
+                  key={a.id}
+                  a={a}
+                  isOpen={openId === a.id}
+                  onToggle={() => setOpenId((id) => (id === a.id ? null : a.id))}
+                />
+              ))}
             </div>
           </section>
         )}
@@ -632,10 +744,7 @@ function MissionControl({ agents }: { agents: Agent[] }) {
         {/* Currently running */}
         {running && (
           <section>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric mb-2 flex items-center gap-1.5">
-              <Radio className="h-3 w-3 animate-pulse-dot" /> Currently Running
-            </div>
-            <CurrentAgentCard a={running} />
+            <CurrentAgentCard key={running.id} a={running} />
           </section>
         )}
 
@@ -678,20 +787,37 @@ function MissionControl({ agents }: { agents: Agent[] }) {
   );
 }
 
-function CompletedRow({ a }: { a: Agent }) {
+function CompletedRow({ a, isOpen, onToggle }: { a: Agent; isOpen: boolean; onToggle: () => void }) {
   const Icon = a.icon;
   return (
-    <div className="flex items-center gap-2.5 rounded-xl border border-mist/70 bg-white px-3 py-2 animate-fade-up">
-      <div className="grid h-8 w-8 place-items-center rounded-lg bg-leaf/12 text-leaf">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-[12px] font-semibold text-ink truncate">{a.name}</div>
-        <span className="inline-flex items-center gap-1 rounded-md bg-leaf/12 px-1.5 py-[1px] text-[9.5px] font-semibold text-leaf">
-          <CheckCircle2 className="h-2.5 w-2.5" /> Completed
-        </span>
-      </div>
-      {a.time && <div className="text-[10px] text-fog tabular-nums font-mono">{a.time}</div>}
+    <div className="rounded-xl border border-mist/70 bg-white overflow-hidden animate-fade-up">
+      <button
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="flex w-full items-center gap-2.5 px-3 py-2 text-left hover:bg-snow/50 transition-colors"
+      >
+        <div className="grid h-8 w-8 place-items-center rounded-lg bg-leaf/12 text-leaf flex-shrink-0">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] font-semibold text-ink truncate">{a.name}</div>
+          <span className="inline-flex items-center gap-1 rounded-md bg-leaf/12 px-1.5 py-[1px] text-[9.5px] font-semibold text-leaf">
+            <CheckCircle2 className="h-2.5 w-2.5" /> Completed
+          </span>
+        </div>
+        {a.time && <div className="text-[10px] text-fog tabular-nums font-mono">{a.time}</div>}
+        <ChevronDown className={`h-3.5 w-3.5 text-fog flex-shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="border-t border-mist/60 bg-snow/40 px-3.5 py-2.5 space-y-1.5 animate-fade-up">
+          {a.lines.map((line, i) => (
+            <div key={i} className="flex items-start gap-1.5 text-[11px] font-mono leading-snug">
+              <span className={line.tone === "warn" ? "text-[#b5790a]" : "text-leaf"}>›</span>
+              <span className="text-smoke">{line.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -715,24 +841,26 @@ function QueuedRow({ a }: { a: Agent }) {
 
 function CurrentAgentCard({ a }: { a: Agent }) {
   const Icon = a.icon;
-  const items = a.lines;
-  const [step, setStep] = useState(2);
-  const [seconds, setSeconds] = useState(135);
+  const items = a.steps;
+  const [step, setStep] = useState(0);
+  const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
+    // Reveal all checklist items over the course of this agent's phase, so the
+    // last one lands right as Mission Control marks the agent "Completed".
+    const tick = Math.max(500, Math.floor(PHASE_DURATION_MS / (items.length + 1)));
     const id = window.setInterval(() => {
       setStep((s) => (s >= items.length ? s : s + 1));
-      setSeconds((s) => s + 5);
-    }, 3200);
+      setSeconds((s) => s + Math.round(tick / 1000));
+    }, tick);
     return () => window.clearInterval(id);
   }, [items.length]);
 
-  const pct = Math.min(100, Math.round((step / items.length) * 100));
   const mm = Math.floor(seconds / 60);
   const ss = (seconds % 60).toString().padStart(2, "0");
 
   return (
-    <div className="relative rounded-2xl border-2 border-electric/40 bg-gradient-to-br from-white via-ice/25 to-white p-4 animate-tab-glow">
+    <div className="relative rounded-2xl border-trail bg-gradient-to-br from-white via-ice/25 to-white p-4">
       <div className="flex items-start gap-3">
         <div className="relative grid h-11 w-11 place-items-center rounded-xl bg-electric/12 text-electric flex-shrink-0">
           <Icon className="h-5 w-5" />
@@ -746,7 +874,7 @@ function CurrentAgentCard({ a }: { a: Agent }) {
               <Radio className="h-3 w-3" /> {mm}:{ss}
             </div>
           </div>
-          <div className="text-[11.5px] text-smoke">Analyzing property data</div>
+          <div className="text-[11.5px] text-smoke">{a.blurb}</div>
         </div>
       </div>
 
@@ -772,48 +900,57 @@ function CurrentAgentCard({ a }: { a: Agent }) {
                 <Circle className="h-3.5 w-3.5 text-mist flex-shrink-0" />
               )}
               <span className={done ? "text-smoke line-through decoration-mist" : current ? "text-ink font-medium" : "text-fog"}>
-                {it.text}
+                {it}
               </span>
             </div>
           );
         })}
       </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        <div className="text-[10px] font-semibold uppercase tracking-widest text-fog">Progress</div>
-        <div className="flex-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-electric to-iris trail-flow transition-[width] duration-700"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-        <div className="text-[11px] font-semibold text-electric tabular-nums">{pct}%</div>
-      </div>
     </div>
   );
 }
 
-function NeuralPulseBanner() {
-  const nodes = Array.from({ length: 9 }, (_, i) => ({ x: 6 + i * 11, y: 50 + Math.sin(i * 1.1) * 14 }));
+// Horizontal "tracks" with glowing packets traveling left-to-right — reads as
+// data/work flowing between agents rather than a static network diagram.
+const STREAM_TRACKS = [
+  { y: 20, color: "#0098f2", duration: 2.6, delay: 0 },
+  { y: 42, color: "#6c56fc", duration: 3.4, delay: 0.5 },
+  { y: 64, color: "#0098f2", duration: 3.0, delay: 1.1 },
+  { y: 86, color: "#6c56fc", duration: 3.8, delay: 0.2 },
+];
+
+function DataStreamBanner() {
   return (
-    <svg className="absolute inset-0 h-full w-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="ncl" x1="0" x2="1">
-          <stop offset="0%" stopColor="#0098f2" stopOpacity="0" />
-          <stop offset="50%" stopColor="#0098f2" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#6c56fc" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {nodes.slice(0, -1).map((n, i) => (
-        <line key={i} x1={n.x} y1={n.y} x2={nodes[i + 1].x} y2={nodes[i + 1].y} stroke="url(#ncl)" strokeWidth="0.5" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {STREAM_TRACKS.map((t, i) => (
+        <div key={i} className="absolute left-[5%] right-[5%]" style={{ top: `${t.y}%` }}>
+          <div
+            className="h-px w-full"
+            style={{ background: `linear-gradient(90deg, transparent, ${t.color}40, transparent)` }}
+          />
+          <span
+            className="absolute left-0 top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background: t.color, boxShadow: `0 0 4px 1px ${t.color}` }}
+          />
+          <span
+            className="absolute right-0 top-1/2 h-1 w-1 translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background: t.color, boxShadow: `0 0 4px 1px ${t.color}` }}
+          />
+          {[0, 1].map((p) => (
+            <span
+              key={p}
+              className="absolute left-0 top-1/2 h-1.5 w-1.5 rounded-full"
+              style={{
+                background: t.color,
+                boxShadow: `0 0 8px 2px ${t.color}`,
+                animation: `packet-travel ${t.duration}s linear infinite`,
+                animationDelay: `${t.delay + p * (t.duration / 2)}s`,
+              }}
+            />
+          ))}
+        </div>
       ))}
-      {nodes.map((n, i) => (
-        <circle key={i} cx={n.x} cy={n.y} r="1.4" fill="#0098f2">
-          <animate attributeName="r" values="1;2.4;1" dur={`${1.4 + (i % 3) * 0.35}s`} repeatCount="indefinite" begin={`${i * 0.15}s`} />
-          <animate attributeName="opacity" values="0.4;1;0.4" dur={`${1.4 + (i % 3) * 0.35}s`} repeatCount="indefinite" begin={`${i * 0.15}s`} />
-        </circle>
-      ))}
-    </svg>
+    </div>
   );
 }
 

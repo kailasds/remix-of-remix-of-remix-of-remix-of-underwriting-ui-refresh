@@ -19,7 +19,7 @@ function Queue() {
   const filtered = cases.filter((c) => (status === "All" || c.status === status) && (q === "" || (c.insured + c.ref + c.broker).toLowerCase().includes(q.toLowerCase())));
 
   return (
-    <div className="mx-auto max-w-[1400px] px-8 py-8">
+    <div className="w-full px-8 py-8">
       <div className="mb-6 flex items-end justify-between animate-fade-up">
         <div>
           <Eyebrow>Submission workspace</Eyebrow>
@@ -184,25 +184,29 @@ function CreateCaseModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d111b]/40 backdrop-blur-sm animate-fade-up">
-      <div className="w-full max-w-[720px] rounded-3xl bg-white p-8 shadow-[0_24px_80px_rgba(15,20,35,.25)]">
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <Eyebrow>Step {step} of 4</Eyebrow>
-            <h2 className="mt-1 text-[22px] font-semibold text-ink">
-              {step === 1 && "Choose a submission source"}
-              {step === 2 && "Upload supporting documents"}
-              {step === 3 && "AI agents at work"}
-              {step === 4 && "Case created"}
-            </h2>
+      <div className="flex w-full max-w-[720px] max-h-[85vh] flex-col rounded-3xl bg-white shadow-[0_24px_80px_rgba(15,20,35,.25)] overflow-hidden">
+        <div className="px-8 pt-8">
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <Eyebrow>Step {step} of 4</Eyebrow>
+              <h2 className="mt-1 text-[22px] font-semibold text-ink">
+                {step === 1 && "Choose a submission source"}
+                {step === 2 && "Upload supporting documents"}
+                {step === 3 && "AI agents at work"}
+                {step === 4 && "Case created"}
+              </h2>
+            </div>
+            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full text-smoke hover:bg-snow"><X className="h-4 w-4" /></button>
           </div>
-          <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full text-smoke hover:bg-snow"><X className="h-4 w-4" /></button>
+
+          <div className="mb-6 flex gap-1.5">
+            {[1, 2, 3, 4].map((s) => (
+              <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-[#0d111b]" : "bg-mist"}`} />
+            ))}
+          </div>
         </div>
 
-        <div className="mb-6 flex gap-1.5">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className={`h-1 flex-1 rounded-full transition-colors ${s <= step ? "bg-[#0d111b]" : "bg-mist"}`} />
-          ))}
-        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto px-8 pb-2">
 
         {step === 1 && (
           <div className="grid grid-cols-2 gap-3">
@@ -297,9 +301,9 @@ function CreateCaseModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
+        </div>
 
-
-        <div className="mt-8 flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-mist/60 px-8 py-6">
           <button onClick={onClose} className="text-[13px] text-smoke hover:text-ink">Cancel</button>
           <div className="flex gap-2">
             {step > 1 && step < 4 && <PillButton variant="secondary" onClick={() => setStep(step - 1)}>Back</PillButton>}

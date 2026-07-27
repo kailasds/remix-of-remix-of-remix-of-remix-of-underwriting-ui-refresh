@@ -12,7 +12,7 @@ const nav = [
 export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith("/settings"));
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const sidebarW = collapsed ? 72 : 240;
 
