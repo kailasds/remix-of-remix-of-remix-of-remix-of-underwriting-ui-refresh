@@ -1,0 +1,266 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Agentic Underwriting Workbench — visual language derived from the
+ * "Paper invoice on frosted glass" style reference. Paper-white canvas,
+ * near-black ink, electric-blue accent, pill controls, 16px card radii.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-ink: var(--ink);
+  --color-smoke: var(--smoke);
+  --color-fog: var(--fog);
+  --color-mist: var(--mist);
+  --color-snow: var(--snow);
+  --color-paper: var(--paper);
+  --color-electric: var(--electric);
+  --color-iris: var(--iris);
+  --color-magenta: var(--magenta);
+  --color-leaf: var(--leaf);
+  --color-coral: var(--coral);
+  --color-ice: var(--ice);
+  --color-lavender: var(--lavender);
+  --color-blush: var(--blush);
+  --font-sans: "Open Runde", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --radius: 1rem;
+  --ink: #1e1e1e;
+  --carbon: #0f0f0f;
+  --midnight: #0d111b;
+  --smoke: #666666;
+  --fog: #8d8d8d;
+  --mist: #ccd1da;
+  --paper: #ffffff;
+  --snow: #f7fafc;
+  --electric: #0098f2;
+  --iris: #6c56fc;
+  --magenta: #f200ca;
+  --leaf: #5d9c06;
+  --coral: #ff6363;
+  --ice: #cfeafa;
+  --lavender: #e1e0fc;
+  --blush: #f6d2f4;
+
+  --background: #ffffff;
+  --foreground: #1e1e1e;
+  --card: #ffffff;
+  --card-foreground: #1e1e1e;
+  --popover: #ffffff;
+  --popover-foreground: #1e1e1e;
+  --primary: #0d111b;
+  --primary-foreground: #ffffff;
+  --secondary: #f7fafc;
+  --secondary-foreground: #1e1e1e;
+  --muted: #f7fafc;
+  --muted-foreground: #666666;
+  --accent: #cfeafa;
+  --accent-foreground: #0d111b;
+  --destructive: #ff6363;
+  --destructive-foreground: #ffffff;
+  --border: #ececf0;
+  --input: #ccd1da;
+  --ring: #0098f2;
+  --chart-1: #0098f2;
+  --chart-2: #6c56fc;
+  --chart-3: #5d9c06;
+  --chart-4: #f200ca;
+  --chart-5: #ff6363;
+  --sidebar: #0d111b;
+  --sidebar-foreground: #d7dbe3;
+  --sidebar-primary: #0098f2;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(255,255,255,0.06);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-ring: #0098f2;
+}
+
+.dark {
+  --background: #0d111b;
+  --foreground: #ffffff;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+}
+
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-smoke);
+}
+
+@utility card-surface {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+@utility pill {
+  border-radius: 9999px;
+}
+
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes progress-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+@keyframes packet-travel {
+  0%   { left: 0%;   opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  85%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { left: 100%; opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+}
+@keyframes glow-ring {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,152,242,0.5), 0 0 24px 0 rgba(0,152,242,0.35); }
+  50%     { box-shadow: 0 0 0 8px rgba(0,152,242,0), 0 0 32px 4px rgba(0,152,242,0.55); }
+}
+@keyframes ripple-once {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes trail-flow {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes blink-caret {
+  0%,50% { opacity: 1; }
+  51%,100% { opacity: 0; }
+}
+@keyframes rec-flash {
+  0% { background-color: rgba(0,152,242,0.18); }
+  100% { background-color: transparent; }
+}
+@keyframes tab-glow {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(0,152,242,0.28), 0 0 22px rgba(0,152,242,0.30); }
+  50%      { box-shadow: 0 0 0 2px rgba(0,152,242,0.55), 0 0 34px rgba(0,152,242,0.55); }
+}
+@keyframes tab-content-in {
+  from { opacity: 0; transform: translateY(6px); filter: blur(2px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+}
+
+.animate-fade-up { animation: fade-up 0.4s ease-out both; }
+.animate-pulse-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+.animate-glow-ring { animation: glow-ring 1.8s ease-in-out infinite; }
+.animate-ripple-once { animation: ripple-once 1.2s ease-out forwards; }
+.animate-rec-flash { animation: rec-flash 1.6s ease-out both; }
+.animate-tab-glow { animation: tab-glow 1.8s ease-in-out infinite; }
+.animate-tab-content { animation: tab-content-in 0.45s ease-out both; }
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f0f2f5 0%, #fafbfc 50%, #f0f2f5 100%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+.trail-flow {
+  background-image: linear-gradient(90deg, rgba(0,152,242,0) 0%, rgba(0,152,242,0.9) 45%, rgba(108,86,252,0.9) 55%, rgba(0,152,242,0) 100%);
+  background-size: 200% 100%;
+  animation: trail-flow 1.6s linear infinite;
+}
+
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes border-trail-spin {
+  to { --border-angle: 360deg; }
+}
+.border-trail {
+  position: relative;
+  z-index: 0;
+}
+.border-trail::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--border-angle, 0deg), #0098f2, #6c56fc, #f200ca, #5d9c06, #0098f2);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-trail-spin 4s linear infinite;
+}
+.caret::after {
+  content: '▋';
+  color: var(--electric);
+  margin-left: 2px;
+  animation: blink-caret 0.9s steps(2) infinite;
+}
