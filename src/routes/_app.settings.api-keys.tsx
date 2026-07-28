@@ -24,7 +24,7 @@ function ApiKeys() {
       </div>
       <table className="w-full text-[13px]">
         <thead>
-          <tr className="border-y border-mist/60 bg-snow/60 text-left text-[10.5px] uppercase tracking-wider text-fog">
+          <tr className="border-y border-mist/60 bg-snow/60 text-left text-[10.5px] text-fog">
             <th className="px-6 py-3 font-medium">Name</th>
             <th className="py-3 font-medium">Key</th>
             <th className="py-3 font-medium">Created</th>

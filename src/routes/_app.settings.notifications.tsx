@@ -27,7 +27,7 @@ function Notifications() {
   const [state, setState] = useState(rows);
   return (
     <Card className="overflow-hidden animate-fade-up">
-      <div className="grid grid-cols-[1fr_100px_100px] gap-4 border-b border-mist/60 bg-snow/60 px-6 py-3 text-[10.5px] uppercase tracking-wider text-fog">
+      <div className="grid grid-cols-[1fr_100px_100px] gap-4 border-b border-mist/60 bg-snow/60 px-6 py-3 text-[10.5px] text-fog">
         <div>Notification</div><div className="text-center">Email</div><div className="text-center">In-app</div>
       </div>
       {state.map((r, i) => (

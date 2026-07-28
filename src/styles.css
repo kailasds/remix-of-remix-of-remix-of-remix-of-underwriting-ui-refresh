@@ -70,7 +70,7 @@
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 0.75rem;
   --ink: #1e1e1e;
   --carbon: #0f0f0f;
   --midnight: #0d111b;

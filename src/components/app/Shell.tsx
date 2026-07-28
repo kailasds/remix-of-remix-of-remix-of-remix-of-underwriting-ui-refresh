@@ -20,7 +20,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[#fafbfc] text-ink">
       <aside
         style={{ width: sidebarW }}
-        className="fixed inset-y-0 left-0 z-40 flex flex-col bg-[#0d111b] text-white/90 transition-[width] duration-200"
+        className="fixed inset-y-0 left-0 z-40 flex flex-col bg-gradient-to-b from-[#0a1628] via-[#123259] to-[#0a1628] text-white/90 transition-[width] duration-200"
       >
         <div className={`flex items-center gap-2 pb-4 pt-6 ${collapsed ? "px-4 justify-center" : "px-6"}`}>
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-electric/15 text-electric">
@@ -29,7 +29,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {!collapsed && (
             <div className="leading-tight">
               <div className="text-[15px] font-semibold tracking-tight">Aegis</div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-white/50">Underwriting</div>
+              <div className="text-[10px] text-white/50">Underwriting</div>
             </div>
           )}
         </div>
@@ -84,7 +84,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
         {!collapsed && (
           <div className="mx-3 mb-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-electric">
+            <div className="flex items-center gap-2 text-[11px] font-semibold text-electric">
               <Sparkles className="h-3.5 w-3.5" /> Agent status
             </div>
             <div className="mt-1 text-[12px] text-white/70">3 agents online · 12 tasks in queue</div>
@@ -113,7 +113,7 @@ export function Shell({ children }: { children: ReactNode }) {
             />
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <span className="hidden items-center gap-1.5 rounded-full border border-mist bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-smoke md:inline-flex">
+            <span className="hidden items-center gap-1.5 rounded-full border border-mist bg-white px-3 py-1 text-[11px] font-semibold text-smoke md:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-leaf" /> Live sync
             </span>
             <button className="relative grid h-9 w-9 place-items-center rounded-full border border-mist bg-white text-ink hover:bg-snow">

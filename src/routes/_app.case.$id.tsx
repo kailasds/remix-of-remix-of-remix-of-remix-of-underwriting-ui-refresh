@@ -294,7 +294,7 @@ function CaseWorkspace() {
   const showingTo = Math.min(10, filtered.length);
 
   return (
-    <div className="mx-auto max-w-[1600px] px-8 py-6">
+    <div className="w-full px-8 py-6">
       <Link to="/queue" className="inline-flex items-center gap-1.5 text-[12px] text-smoke hover:text-ink">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to my queue
       </Link>
@@ -325,13 +325,13 @@ function CaseHeader({ c, confidence }: { c: (typeof cases)[number]; confidence: 
     <div className="rounded-2xl border border-mist/70 bg-white px-6 py-5 animate-fade-up">
       <div className="flex items-start gap-6">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-fog">
-            <span className="uppercase">SUB-24803</span>
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-fog">
+            <span>SUB-24803</span>
             <span className="text-mist">•</span>
-            <span className="uppercase text-smoke">Commercial Property</span>
+            <span className="text-smoke">Commercial Property</span>
           </div>
           <div className="mt-1 flex items-center gap-3">
-            <h1 className="text-[26px] font-semibold leading-tight text-ink">Peninsula Marina Group</h1>
+            <h1 className="text-[19px] font-semibold leading-tight text-ink">Peninsula Marina Group</h1>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-electric/10 px-2.5 py-0.5 text-[11px] font-semibold text-electric">
               <span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse-dot" /> In Progress
             </span>
@@ -346,40 +346,22 @@ function CaseHeader({ c, confidence }: { c: (typeof cases)[number]; confidence: 
 
         <div className="flex items-stretch gap-5 pt-1">
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Current Recommendation</div>
+            <div className="text-[10.5px] font-semibold text-fog">Current Recommendation</div>
             <div className="mt-1 text-[14.5px] font-semibold text-leaf">Accept with Conditions</div>
           </div>
           <div className="w-px bg-mist/70" />
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Confidence</div>
-            <div className="mt-1 flex items-center gap-2">
-              <ConfidenceRing value={confidence} />
-              <span className="text-[16px] font-semibold text-ink tabular-nums">{confidence}%</span>
-            </div>
+            <div className="text-[10.5px] font-semibold text-fog">Confidence</div>
+            <div className="mt-1 text-[16px] font-semibold text-ink tabular-nums">{confidence}%</div>
           </div>
           <div className="w-px bg-mist/70" />
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Premium Estimate</div>
+            <div className="text-[10.5px] font-semibold text-fog">Premium Estimate</div>
             <div className="mt-1 text-[16px] font-semibold text-ink">{formatUSD(148200)}</div>
-            <div className="mt-0.5 text-[10.5px] text-smoke">vs Benchmark <span className="text-leaf font-semibold">↓ 4%</span></div>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function ConfidenceRing({ value, trackColor = "var(--mist)" }: { value: number; trackColor?: string }) {
-  const r = 14;
-  const c = 2 * Math.PI * r;
-  const off = c - (value / 100) * c;
-  return (
-    <svg width="34" height="34" viewBox="0 0 34 34" className="-rotate-90">
-      <circle cx="17" cy="17" r={r} stroke={trackColor} strokeWidth="3" fill="none" />
-      <circle cx="17" cy="17" r={r} stroke="var(--leaf)" strokeWidth="3" fill="none"
-        strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
-        style={{ transition: "stroke-dashoffset 500ms ease" }} />
-    </svg>
   );
 }
 
@@ -535,7 +517,7 @@ function FindingCard({ f, delay }: { f: Finding; delay: number }) {
   return (
     <div className="rounded-2xl border border-mist/70 bg-white overflow-hidden animate-fade-up" style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-center gap-3 px-5 pt-4">
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-fog">{f.eyebrow}</div>
+        <div className="text-[10.5px] font-semibold text-fog">{f.eyebrow}</div>
         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold ${badge.cls}`}>
           <badge.Icon className="h-3 w-3" /> {f.verdictLabel}
         </span>
@@ -554,11 +536,11 @@ function FindingCard({ f, delay }: { f: Finding; delay: number }) {
       {f.aggregate && (
         <div className="mx-5 mb-5 rounded-xl border border-mist/70 bg-snow/40 px-4 py-3.5 flex items-center gap-5">
           <div className="flex-1">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Extracted Value</div>
+            <div className="text-[10.5px] font-semibold text-fog">Extracted Value</div>
             <div className="mt-0.5 text-[13.5px] font-semibold text-ink">{f.aggregate.value}</div>
           </div>
           <div className="flex-1">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Sources ({f.aggregate.sources.length})</div>
+            <div className="text-[10.5px] font-semibold text-fog">Sources ({f.aggregate.sources.length})</div>
             <div className="mt-1 flex flex-wrap gap-1.5">
               {f.aggregate.sources.map((src) => (
                 <span key={src} className="inline-flex items-center gap-1 rounded-md border border-mist bg-white px-2 py-0.5 text-[10.5px] text-ink">
@@ -568,7 +550,7 @@ function FindingCard({ f, delay }: { f: Finding; delay: number }) {
             </div>
           </div>
           <div className="w-[150px]">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">AI Confidence</div>
+            <div className="text-[10.5px] font-semibold text-fog">AI Confidence</div>
             <div className="mt-0.5 flex items-center gap-1.5">
               <div className="flex-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
                 <div className="h-full rounded-full bg-leaf" style={{ width: `${f.aggregate.confidence}%` }} />
@@ -586,7 +568,7 @@ function FindingCard({ f, delay }: { f: Finding; delay: number }) {
         <div className="mx-5 mb-5 rounded-xl border border-electric/25 bg-gradient-to-br from-ice/40 to-white p-4">
           <div className="flex items-start gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-electric">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-electric">
                 <Sparkles className="h-3 w-3" /> AI Recommendation
               </div>
               <div className="mt-1 text-[13px] font-semibold text-ink leading-snug">{f.ai.recommendation}</div>
@@ -598,7 +580,7 @@ function FindingCard({ f, delay }: { f: Finding; delay: number }) {
               )}
             </div>
             <div className="w-[140px] flex-shrink-0">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog">AI Confidence</div>
+              <div className="text-[10px] font-semibold text-fog">AI Confidence</div>
               <div className="mt-0.5 text-[15px] font-semibold text-electric tabular-nums">{f.ai.confidence}%</div>
               <div className="mt-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
                 <div className="h-full rounded-full bg-gradient-to-r from-electric to-iris" style={{ width: `${f.ai.confidence}%` }} />
@@ -630,7 +612,7 @@ function SourceTile({ s }: { s: Source }) {
         <FileText className="h-2.5 w-2.5 text-fog flex-shrink-0" />
         <div className="text-[10.5px] font-semibold text-ink truncate">{s.doc}</div>
         {s.page && <span className="text-[9.5px] text-fog whitespace-nowrap">· {s.page}</span>}
-        <span className={`ml-auto rounded-full px-1.5 py-[1px] text-[9px] font-semibold uppercase tracking-wider ${toneChip}`}>
+        <span className={`ml-auto rounded-full px-1.5 py-[1px] text-[9px] font-semibold ${toneChip}`}>
           {tone === "match" ? "Match" : tone === "conflict" ? "Diff" : "—"}
         </span>
       </div>
@@ -682,7 +664,7 @@ function MissionControl({
             <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-electric animate-pulse-dot ring-2 ring-white" />
           </span>
         )}
-        <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric [writing-mode:vertical-rl] rotate-180">
+        <span className="text-[10px] font-bold text-electric [writing-mode:vertical-rl] rotate-180">
           Mission Control
         </span>
         <span className="mt-auto inline-flex items-center gap-1 rounded-full border border-leaf/30 bg-leaf/12 px-1.5 py-1 text-leaf">
@@ -727,7 +709,7 @@ function MissionControl({
         {/* Completed first (per user preference) */}
         {completed.length > 0 && (
           <section>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-fog mb-2 flex items-center gap-1.5">
+            <div className="text-[10px] font-bold text-fog mb-2 flex items-center gap-1.5">
               Completed <span className="text-fog/70 font-medium normal-case tracking-normal">· {completed.length}</span>
             </div>
             <div className="space-y-1.5">
@@ -753,7 +735,7 @@ function MissionControl({
         {/* Upcoming */}
         {upcoming.length > 0 && (
           <section>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-fog mb-2 flex items-center gap-1.5">
+            <div className="text-[10px] font-bold text-fog mb-2 flex items-center gap-1.5">
               Upcoming <span className="text-fog/70 font-medium normal-case tracking-normal">· {upcoming.length}</span>
             </div>
             <div className="space-y-1.5">
@@ -764,7 +746,7 @@ function MissionControl({
 
         {/* Agent network */}
         <section className="rounded-xl border border-mist/70 bg-snow/40 px-4 py-3">
-          <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-electric mb-2">Agent Network</div>
+          <div className="text-[10px] font-bold text-electric mb-2">Agent Network</div>
           <div className="flex items-center gap-3 text-[11.5px] text-smoke">
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" />7 Online</span>
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse-dot" />5 Busy</span>
@@ -834,7 +816,7 @@ function QueuedRow({ a }: { a: Agent }) {
       <div className="flex-1 min-w-0">
         <div className="text-[12px] font-medium text-smoke truncate">{a.name}</div>
       </div>
-      <span className="inline-flex items-center rounded-md border border-mist bg-white px-1.5 py-[1px] text-[9.5px] font-semibold text-fog uppercase tracking-wider">
+      <span className="inline-flex items-center rounded-md border border-mist bg-white px-1.5 py-[1px] text-[9.5px] font-semibold text-fog">
         Queued
       </span>
     </div>
@@ -967,7 +949,7 @@ function AskAiFab({ open, onToggle }: { open: boolean; onToggle: () => void }) {
               <Sparkles className="h-3.5 w-3.5" />
             </div>
             <div className="text-[13px] font-semibold text-ink">Ask AI</div>
-            <span className="ml-auto text-[10px] font-semibold uppercase tracking-widest text-iris bg-iris/10 px-1.5 py-0.5 rounded">Beta</span>
+            <span className="ml-auto text-[10px] font-semibold text-iris bg-iris/10 px-1.5 py-0.5 rounded">Beta</span>
           </div>
           <div className="p-4 space-y-2 text-[12.5px] text-smoke">
             <p>I'm following this investigation in real time. Ask me anything about the submission.</p>

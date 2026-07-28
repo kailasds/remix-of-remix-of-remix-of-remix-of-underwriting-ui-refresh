@@ -124,6 +124,11 @@ type ClaimRow = {
   paid: number; reserved: number; incurred: number;
 } & Sourced;
 
+/** A conflict between what different source documents say a field's value is. */
+export type FieldDiscrepancy = { values: { value: string; source: string }[]; recommendation: string };
+
+type ProfileField = { k: string; v: string; source: string; discrepancy?: FieldDiscrepancy };
+
 /* ── Business Identity ── */
 export const identityDetail = {
   status: "verified" as FindingStatus,
@@ -131,15 +136,34 @@ export const identityDetail = {
     "Legal entity, EIN and NAICS all reconcile across ACORD 125, IRS EIN letter and Florida SunBiz filing. DBA is registered and current. Both principals cleared OFAC/PEP/adverse-media screening.",
   recommendation: "Proceed. No additional identity verification required.",
   profile: [
-    { k: "Legal Entity", v: "Coastal Ridge Cold Storage, LLC", source: "ACORD 125 (pg. 1)" },
-    { k: "DBA", v: "Coastal Ridge Distribution", source: "FL SunBiz fictitious name registry" },
+    {
+      k: "Legal Entity", v: "Coastal Ridge Cold Storage, LLC", source: "ACORD 125 (pg. 1)",
+      discrepancy: {
+        values: [
+          { value: "Coastal Ridge Cold Storage, LLC", source: "ACORD 125" },
+          { value: "Coastal Ridge Cold Storage LLC", source: "ACORD 140" },
+          { value: "Coastal Ridge Cold Storage", source: "Certificate of Insurance" },
+        ],
+        recommendation: "Use “Coastal Ridge Cold Storage, LLC” — matches the FL SunBiz record of legal name exactly (ACORD 125).",
+      },
+    },
+    {
+      k: "DBA", v: "Coastal Ridge Distribution", source: "FL SunBiz fictitious name registry",
+      discrepancy: {
+        values: [
+          { value: "Coastal Ridge Distribution", source: "ACORD 125" },
+          { value: "Coastal Ridge Distributors", source: "Schedule of Locations" },
+        ],
+        recommendation: "Use “Coastal Ridge Distribution” — matches the active FL SunBiz fictitious name registration (ACORD 125).",
+      },
+    },
     { k: "Entity Type", v: "Florida Limited Liability Company", source: "FL SunBiz record L15000091823" },
     { k: "State of Formation", v: "Florida (2015)", source: "FL SunBiz record L15000091823" },
     { k: "EIN", v: "59-3821094", source: "IRS CP-575 EIN letter" },
     { k: "NAICS", v: "493120 — Refrigerated Warehousing & Storage", source: "ACORD 125 (pg. 1)" },
     { k: "Years in Business", v: "11 years (est. 2015)", source: "FL SunBiz record L15000091823" },
     { k: "Est. Annual Revenue", v: "$18.4M (2025)", source: "D&B business credit report" },
-  ],
+  ] as ProfileField[],
   principals: [
     { name: "Marcus Ridley", title: "Managing Member", ownership: "60%", screening: "Clear", source: "LexisNexis Accurint" },
     { name: "Elena Ridley", title: "Member", ownership: "40%", screening: "Clear", source: "LexisNexis Accurint" },

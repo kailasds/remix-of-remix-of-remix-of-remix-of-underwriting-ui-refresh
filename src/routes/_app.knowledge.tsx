@@ -24,7 +24,7 @@ function KnowledgeHub() {
   const [cat, setCat] = useState("All");
   const filtered = guidelines.filter((g) => (cat === "All" || g.tag === cat) && g.title.toLowerCase().includes(q.toLowerCase()));
   return (
-    <div className="mx-auto max-w-[1400px] px-8 py-8">
+    <div className="w-full px-8 py-8">
       <div className="mb-6 animate-fade-up">
         <Eyebrow>Reference library</Eyebrow>
         <h1 className="mt-2 text-[30px] font-semibold text-ink">Knowledge Hub</h1>

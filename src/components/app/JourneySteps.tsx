@@ -1,9 +1,10 @@
 import { Fragment, useMemo, useState, type ComponentType } from "react";
+import { createPortal } from "react-dom";
 import {
   Sparkles, Search, Layers, DollarSign, Gavel, ClipboardList,
   CheckCircle2, AlertTriangle, Info, Zap, TrendingUp, ShieldCheck, ChevronDown,
   Lightbulb, Compass, MessageSquare, ArrowRight, Filter, ChevronLeft, ChevronRight,
-  MoreVertical, X, FileCheck2, Loader2, MapPin, History, Handshake, Scale,
+  X, FileCheck2, Loader2, MapPin, History, Handshake, Scale,
 } from "lucide-react";
 import {
   aiBrief, riskStory, quote, decision, auditTrail,
@@ -69,7 +70,7 @@ export function JourneySteps({
                  <Icon className="h-3.5 w-3.5" />}
               </div>
               <div className="text-left min-w-0">
-                <div className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${filling ? "text-electric" : "text-fog"}`}>
+                <div className={`text-[10px] font-semibold ${filling ? "text-electric" : "text-fog"}`}>
                   {filling ? "Filling…" : done ? "Done" : `Step ${i + 1}`}
                 </div>
                 <div className={`text-[12.5px] font-semibold truncate ${
@@ -110,7 +111,7 @@ function StepBrief() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-fog">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-fog">
           <Sparkles className="h-3.5 w-3.5 text-electric" /> Executive AI Summary
         </div>
         <p className="mt-2 text-[14.5px] leading-relaxed text-ink">{aiBrief.headline}</p>
@@ -119,7 +120,7 @@ function StepBrief() {
       <div className="grid grid-cols-5 gap-3">
         {aiBrief.kpis.map((k) => (
           <div key={k.label} className={`rounded-xl border border-mist/70 bg-gradient-to-br ${toneMap[k.tone] || toneMap.brand} p-3.5`}>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">{k.label}</div>
+            <div className="text-[10.5px] font-semibold text-fog">{k.label}</div>
             <div className="mt-1 text-[18px] font-semibold text-ink tabular-nums">{k.value}</div>
             <div className="mt-0.5 text-[11px] text-smoke">{k.sub}</div>
           </div>
@@ -128,7 +129,7 @@ function StepBrief() {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-mist/70 bg-snow/40 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog">Submission snapshot</div>
+          <div className="text-[11px] font-semibold text-fog">Submission snapshot</div>
           <dl className="mt-3 space-y-1.5">
             {aiBrief.snapshot.map((r) => (
               <div key={r.k} className="flex items-baseline justify-between gap-4 text-[12.5px]">
@@ -139,7 +140,7 @@ function StepBrief() {
           </dl>
         </div>
         <div className="rounded-xl border border-electric/25 bg-gradient-to-br from-ice/40 to-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog">Current recommendation</div>
+          <div className="text-[11px] font-semibold text-fog">Current recommendation</div>
           <div className="mt-1.5 text-[20px] font-semibold text-ink">{aiBrief.recommendation}</div>
           <div className="mt-1 text-[12px] text-smoke">Overall risk rating <span className="font-semibold text-ink">{aiBrief.riskRating}</span></div>
           <div className="mt-3 flex items-center justify-between text-[11.5px]">
@@ -159,7 +160,7 @@ function StepBrief() {
 
       <div className="grid grid-cols-2 gap-5">
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-fog mb-2">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Top risks requiring human attention
           </div>
           <div className="space-y-2">
@@ -167,7 +168,7 @@ function StepBrief() {
               <div key={r.title} className="rounded-xl border border-amber-200/70 bg-amber-50/40 p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="text-[13px] font-semibold text-ink">{r.title}</div>
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-700">{r.severity}</span>
+                  <span className="text-[10px] font-semibold text-amber-700">{r.severity}</span>
                 </div>
                 <div className="mt-1 text-[12px] text-smoke leading-relaxed">{r.body}</div>
               </div>
@@ -175,7 +176,7 @@ function StepBrief() {
           </div>
         </div>
         <div>
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-fog mb-2">
             <ShieldCheck className="h-3.5 w-3.5 text-leaf" /> Positive signals
           </div>
           <div className="space-y-2">
@@ -191,7 +192,7 @@ function StepBrief() {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-fog mb-2">
             <Info className="h-3.5 w-3.5 text-electric" /> Open questions still being investigated
           </div>
           <ul className="space-y-1.5">
@@ -203,7 +204,7 @@ function StepBrief() {
           </ul>
         </div>
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-fog mb-2">
             <Lightbulb className="h-3.5 w-3.5 text-electric" /> AI suggested next actions
           </div>
           <ul className="space-y-1.5">
@@ -211,7 +212,7 @@ function StepBrief() {
               <li key={a.label} className="flex items-start gap-2 text-[12.5px]">
                 <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-electric shrink-0" />
                 <span className="text-ink flex-1">{a.label}</span>
-                <span className={`text-[10px] font-semibold uppercase tracking-widest ${a.priority === "Primary" ? "text-electric" : "text-smoke"}`}>{a.priority}</span>
+                <span className={`text-[10px] font-semibold ${a.priority === "Primary" ? "text-electric" : "text-smoke"}`}>{a.priority}</span>
               </li>
             ))}
           </ul>
@@ -360,7 +361,7 @@ const findingRowsV2: FindingRowV2[] = [
 function DiscrepancyChip({ count }: { count: number }) {
   if (count === 0) {
     return (
-      <span className="inline-flex items-center rounded-md border border-leaf/25 bg-leaf/10 px-2 py-0.5 text-[10.5px] font-semibold text-leaf">
+      <span className="inline-flex items-center whitespace-nowrap rounded-md border border-leaf/25 bg-leaf/10 px-2 py-0.5 text-[10.5px] font-semibold text-leaf">
         No discrepancy
       </span>
     );
@@ -370,7 +371,7 @@ function DiscrepancyChip({ count }: { count: number }) {
       ? "border-coral/30 bg-coral/10 text-coral"
       : "border-amber-300/60 bg-amber-100/70 text-amber-800";
   return (
-    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-semibold ${tone}`}>
+    <span className={`inline-flex items-center whitespace-nowrap rounded-md border px-2 py-0.5 text-[10.5px] font-semibold ${tone}`}>
       {count} different values
     </span>
   );
@@ -390,10 +391,80 @@ function StatusBadge({ status }: { status: RowStatus }) {
   );
 }
 
-function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void }) {
+function SideBySideModal({ row, onClose }: { row: FindingRowV2; onClose: () => void }) {
+  const values = row.extractedValues ?? [];
+  return createPortal(
+    <div className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-6" onClick={onClose}>
+      <div
+        className="w-full max-w-3xl rounded-2xl border border-mist/70 bg-white shadow-xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-mist/60">
+          <div>
+            <div className="text-[10px] font-semibold text-fog">Side by Side Comparison</div>
+            <div className="text-[14px] font-semibold text-ink">{row.field}</div>
+          </div>
+          <button onClick={onClose} className="rounded-md p-1.5 text-fog hover:text-ink hover:bg-mist/60">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="grid gap-4 p-5" style={{ gridTemplateColumns: `repeat(${Math.max(values.length, 1)}, minmax(0, 1fr))` }}>
+          {values.map((v, i) => (
+            <div key={i} className={`rounded-xl border p-3 ${v.recommended ? "border-electric/40 bg-ice/20" : "border-mist/70 bg-white"}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11.5px] font-semibold text-ink truncate">{v.source}</span>
+                {v.recommended && (
+                  <span className="rounded-md border border-leaf/25 bg-leaf/10 px-1.5 py-0.5 text-[9.5px] font-semibold text-leaf shrink-0">
+                    Recommended
+                  </span>
+                )}
+              </div>
+              {v.effective && <div className="mt-0.5 text-[10.5px] text-fog">Effective: {v.effective}</div>}
+              <div className="mt-2.5 h-40 rounded-lg bg-gradient-to-b from-snow to-mist/40 border border-mist/50 overflow-hidden relative">
+                <div className="absolute inset-3 space-y-1.5">
+                  <div className="h-1 rounded bg-mist/70 w-full" />
+                  <div className="h-1 rounded bg-mist/70 w-5/6" />
+                  <div
+                    className={`inline-flex h-4 max-w-full items-center truncate rounded px-1.5 text-[9px] font-medium ${
+                      v.recommended
+                        ? "bg-electric/20 text-[#0c5a8e] ring-1 ring-electric/40"
+                        : "bg-amber-200/70 text-amber-900 ring-1 ring-amber-400/60"
+                    }`}
+                  >
+                    {v.value}
+                  </div>
+                  <div className="h-1 rounded bg-mist/60 w-4/5" />
+                  <div className="h-1 rounded bg-mist/60 w-full" />
+                  <div className="h-1 rounded bg-mist/60 w-2/3" />
+                </div>
+              </div>
+              <div className="mt-2 text-[12px] font-medium text-ink">{v.value}</div>
+            </div>
+          ))}
+        </div>
+        {row.recommendationDetail && (
+          <div className="mx-5 mb-5 flex items-start gap-1.5 rounded-lg border border-electric/25 bg-ice/30 p-3">
+            <Sparkles className="h-3.5 w-3.5 mt-0.5 text-electric shrink-0" />
+            <p className="text-[12px] leading-relaxed text-ink">{row.recommendationDetail}</p>
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function ExpandedRow({
+  row, onClose, onAccept,
+}: {
+  row: FindingRowV2;
+  onClose: () => void;
+  onAccept: () => void;
+}) {
+  const [compareOpen, setCompareOpen] = useState(false);
   return (
     <tr>
-      <td colSpan={8} className="bg-snow/50 border-t border-mist/60 px-0 py-0">
+      <td colSpan={6} className="bg-snow/50 border-t border-mist/60 px-0 py-0">
         <div className="grid grid-cols-[1.15fr_1fr_1.1fr_1fr] gap-0 relative animate-in fade-in slide-in-from-top-1 duration-200">
           <button
             onClick={onClose}
@@ -405,7 +476,7 @@ function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void 
 
           {/* Extracted values */}
           <div className="px-5 py-4 border-r border-mist/50">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+            <div className="text-[10px] font-semibold text-fog mb-2">
               Extracted Values
             </div>
             <ul className="space-y-3">
@@ -435,7 +506,7 @@ function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void 
 
           {/* Observation */}
           <div className="px-5 py-4 border-r border-mist/50">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+            <div className="text-[10px] font-semibold text-fog mb-2">
               AI Observation
             </div>
             <p className="text-[12px] text-ink leading-relaxed">{row.observation}</p>
@@ -443,7 +514,7 @@ function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void 
 
           {/* Recommendation */}
           <div className="px-5 py-4 border-r border-mist/50">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+            <div className="text-[10px] font-semibold text-fog mb-2">
               AI Recommendation
             </div>
             <div className="rounded-lg border border-electric/25 bg-ice/30 p-3">
@@ -457,14 +528,17 @@ function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void 
                 {row.recommendationDetail}
               </p>
             </div>
-            <button className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-electric px-3 py-2 text-[12px] font-semibold text-white hover:bg-electric/90 transition">
+            <button
+              onClick={() => { onAccept(); onClose(); }}
+              className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-electric px-3 py-2 text-[12px] font-semibold text-white hover:bg-electric/90 transition"
+            >
               <FileCheck2 className="h-3.5 w-3.5" /> Accept Recommendation
             </button>
           </div>
 
           {/* Evidence preview */}
           <div className="px-5 py-4">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">
+            <div className="text-[10px] font-semibold text-fog mb-2">
               Evidence Preview
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -491,17 +565,23 @@ function ExpandedRow({ row, onClose }: { row: FindingRowV2; onClose: () => void 
                 </div>
               ))}
             </div>
-            <button className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-mist bg-white px-3 py-1.5 text-[11.5px] font-medium text-ink hover:bg-snow transition">
+            <button
+              onClick={() => setCompareOpen(true)}
+              disabled={!row.extractedValues?.length}
+              className="mt-3 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border border-mist bg-white px-3 py-1.5 text-[11.5px] font-medium text-ink hover:bg-snow transition disabled:opacity-40 disabled:pointer-events-none"
+            >
               <Layers className="h-3.5 w-3.5" /> View Side by Side
             </button>
           </div>
         </div>
       </td>
+      {compareOpen && <SideBySideModal row={row} onClose={() => setCompareOpen(false)} />}
     </tr>
   );
 }
 
 function StepFindings() {
+  const [rows, setRows] = useState<FindingRowV2[]>(findingRowsV2);
   const [activeCat, setActiveCat] = useState<"all" | FindingCategory>("all");
   const [query, setQuery] = useState("");
   const [showOnlyDiscrepancies, setShowOnlyDiscrepancies] = useState(true);
@@ -509,14 +589,18 @@ function StepFindings() {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
+  const handleAccept = (id: string) => {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: "accepted", discrepancyCount: 0 } : r)));
+  };
+
   const filtered = useMemo(() => {
-    return findingRowsV2.filter((r) => {
+    return rows.filter((r) => {
       if (activeCat !== "all" && r.category !== activeCat) return false;
       if (showOnlyDiscrepancies && r.discrepancyCount === 0 && r.status === "accepted") return false;
       if (query && !r.field.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [activeCat, showOnlyDiscrepancies, query]);
+  }, [rows, activeCat, showOnlyDiscrepancies, query]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const start = (page - 1) * perPage;
@@ -567,7 +651,7 @@ function StepFindings() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-mist/70 overflow-x-auto">
+      <div className="flex items-center gap-1 rounded-t-xl border-b border-mist/60 bg-ice/50 px-2 pt-1 overflow-x-auto overflow-y-hidden">
         {FINDING_CATEGORIES.map((c) => {
           const active = activeCat === c.id;
           const Icon = c.icon;
@@ -575,8 +659,8 @@ function StepFindings() {
             <button
               key={c.id}
               onClick={() => { setActiveCat(c.id); setPage(1); }}
-              className={`relative flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium whitespace-nowrap transition-colors ${
-                active ? "text-electric" : "text-smoke hover:text-ink"
+              className={`relative flex items-center gap-1.5 rounded-t-lg px-3 py-2.5 text-[14.5px] font-semibold whitespace-nowrap transition-colors ${
+                active ? "bg-white text-electric" : "text-smoke hover:text-ink hover:bg-white/50"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -593,14 +677,13 @@ function StepFindings() {
           <div className="rounded-xl border border-mist/70 overflow-hidden bg-white">
             <table className="w-full text-[12px]">
               <thead>
-                <tr className="bg-snow/60 text-[10px] font-semibold uppercase tracking-[0.14em] text-fog">
-                  <th className="text-left px-4 py-2.5">Field</th>
-                  <th className="text-left px-4 py-2.5">Extracted Value (AI)</th>
-                  <th className="text-left px-4 py-2.5">Discrepancy</th>
-                  <th className="text-left px-4 py-2.5">Sources (Document)</th>
-                  <th className="text-left px-4 py-2.5">AI Recommendation</th>
-                  <th className="text-left px-4 py-2.5">Status</th>
-                  <th className="px-2 py-2.5" />
+                <tr className="bg-snow/60 text-[12.5px] font-semibold text-ink">
+                  <th className="text-left px-4 py-3 w-[18%]">Field</th>
+                  <th className="text-left px-4 py-3 w-[18%]">Extracted Value (AI)</th>
+                  <th className="text-left px-4 py-3 w-[13%]">Discrepancy</th>
+                  <th className="text-left px-4 py-3 w-[13%]">Sources (Document)</th>
+                  <th className="text-left px-4 py-3 w-[24%]">AI Recommendation</th>
+                  <th className="text-left px-4 py-3 w-[14%]">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -615,46 +698,45 @@ function StepFindings() {
                         }`}
                       >
 
-                        <td className="px-4 py-3 font-medium text-ink whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
+                        <td className="px-4 py-3 font-medium text-ink">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             {isOpen ? (
-                              <ChevronDown className="h-3.5 w-3.5 text-electric" />
+                              <ChevronDown className="h-3.5 w-3.5 text-electric shrink-0" />
                             ) : (
-                              <ChevronRight className="h-3.5 w-3.5 text-fog" />
+                              <ChevronRight className="h-3.5 w-3.5 text-fog shrink-0" />
                             )}
-                            {row.field}
+                            <span className="truncate">{row.field}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-ink">{row.extractedValue}</td>
+                        <td className="px-4 py-3 text-ink">
+                          <div className="truncate" title={row.extractedValue}>{row.extractedValue}</div>
+                        </td>
                         <td className="px-4 py-3"><DiscrepancyChip count={row.discrepancyCount} /></td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap items-center gap-1">
-                            {row.sources.slice(0, 2).map((s) => <SourceChip key={s} label={s} />)}
-                            {row.sources.length > 2 && (
-                              <span className="text-[10.5px] font-semibold text-smoke">+{row.sources.length - 2}</span>
+                            {row.sources.slice(0, 1).map((s) => <SourceChip key={s} label={s} />)}
+                            {row.sources.length > 1 && (
+                              <span className="text-[10.5px] font-semibold text-smoke">+{row.sources.length - 1}</span>
                             )}
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-ink">{row.aiRecommendation}</div>
+                          <div className="truncate text-ink" title={row.aiRecommendation}>{row.aiRecommendation}</div>
                           {row.aiRecommendationSub && (
-                            <div className="text-[10.5px] text-fog mt-0.5">{row.aiRecommendationSub}</div>
+                            <div className="truncate text-[10.5px] text-fog mt-0.5">{row.aiRecommendationSub}</div>
                           )}
                         </td>
                         <td className="px-4 py-3"><StatusBadge status={row.status} /></td>
-                        <td className="px-2 py-3 text-fog">
-                          <MoreVertical className="h-3.5 w-3.5" />
-                        </td>
                       </tr>
                       {isOpen && row.extractedValues && (
-                        <ExpandedRow row={row} onClose={() => setExpandedId(null)} />
+                        <ExpandedRow row={row} onClose={() => setExpandedId(null)} onAccept={() => handleAccept(row.id)} />
                       )}
                     </Fragment>
                   );
                 })}
                 {paged.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-[12.5px] text-smoke">
+                    <td colSpan={6} className="px-4 py-10 text-center text-[12.5px] text-smoke">
                       No findings match your filters.
                     </td>
                   </tr>
@@ -725,7 +807,7 @@ function StepRisk() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-mist/70 bg-gradient-to-br from-snow/60 to-white p-5">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-fog">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-fog">
           <Compass className="h-3.5 w-3.5 text-electric" /> Overall risk narrative
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-ink">{riskStory.narrative}</p>
@@ -734,7 +816,7 @@ function StepRisk() {
       <div className="grid grid-cols-4 gap-3">
         {riskStory.visualCards.map((c) => (
           <div key={c.label} className={`rounded-xl border p-3.5 ${toneMap[c.tone] || toneMap.leaf}`}>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">{c.label}</div>
+            <div className="text-[10.5px] font-semibold text-fog">{c.label}</div>
             <div className="mt-1 text-[16px] font-semibold text-ink">{c.value}</div>
             <div className="mt-0.5 text-[11px] text-smoke">{c.detail}</div>
           </div>
@@ -743,7 +825,7 @@ function StepRisk() {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-leaf/25 bg-leaf/[0.05] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-leaf mb-2">Positive factors</div>
+          <div className="text-[11px] font-semibold text-leaf mb-2">Positive factors</div>
           <ul className="space-y-1.5">
             {riskStory.positives.map((p) => (
               <li key={p} className="flex items-start gap-2 text-[12.5px] text-ink">
@@ -753,7 +835,7 @@ function StepRisk() {
           </ul>
         </div>
         <div className="rounded-xl border border-amber-300/60 bg-amber-50/50 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700 mb-2">Watch items</div>
+          <div className="text-[11px] font-semibold text-amber-700 mb-2">Watch items</div>
           <ul className="space-y-1.5">
             {riskStory.watchItems.map((p) => (
               <li key={p} className="flex items-start gap-2 text-[12.5px] text-ink">
@@ -765,7 +847,7 @@ function StepRisk() {
       </div>
 
       <div className="rounded-xl border border-mist/70 bg-white p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-3">Risk drivers (weighted)</div>
+        <div className="text-[11px] font-semibold text-fog mb-3">Risk drivers (weighted)</div>
         <div className="space-y-2.5">
           {riskStory.drivers.map((d) => (
             <div key={d.name}>
@@ -783,7 +865,7 @@ function StepRisk() {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Suggested endorsements</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Suggested endorsements</div>
           <div className="space-y-2">
             {riskStory.endorsements.map((e) => (
               <div key={e.code} className="rounded-lg border border-mist/60 bg-snow/40 p-2.5">
@@ -797,7 +879,7 @@ function StepRisk() {
           </div>
         </div>
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Loss trends (5-year)</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Loss trends (5-year)</div>
           <p className="text-[12px] text-smoke leading-relaxed">{riskStory.lossTrends.summary}</p>
           <div className="mt-3 grid grid-cols-6 gap-2 items-end h-[100px]">
             {riskStory.lossTrends.series.map((s) => (
@@ -819,7 +901,7 @@ function StepRisk() {
           { title: "Compliance summary", body: riskStory.compliance },
         ].map((c) => (
           <div key={c.title} className="rounded-xl border border-mist/70 bg-white p-4">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog">{c.title}</div>
+            <div className="text-[11px] font-semibold text-fog">{c.title}</div>
             <p className="mt-1.5 text-[12.5px] text-ink leading-relaxed">{c.body}</p>
           </div>
         ))}
@@ -837,33 +919,33 @@ function StepQuote() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-electric/25 bg-gradient-to-br from-ice/40 to-white p-5">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-electric">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-electric">
           <Sparkles className="h-3.5 w-3.5" /> AI pricing recommendation
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-ink">{quote.recommendation}</p>
         <div className="mt-4 grid grid-cols-4 gap-3">
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Recommended premium</div>
+            <div className="text-[10.5px] font-semibold text-fog">Recommended premium</div>
             <div className="mt-1 text-[22px] font-semibold text-ink">${quote.recommendedPremium.toLocaleString()}</div>
           </div>
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Rate</div>
+            <div className="text-[10.5px] font-semibold text-fog">Rate</div>
             <div className="mt-1 text-[22px] font-semibold text-ink">{quote.rate}%</div>
             <div className="text-[11px] text-smoke">Class benchmark {quote.benchmark}%</div>
           </div>
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Expected loss ratio</div>
+            <div className="text-[10.5px] font-semibold text-fog">Expected loss ratio</div>
             <div className="mt-1 text-[22px] font-semibold text-ink">{quote.expectedLossRatio}%</div>
           </div>
           <div>
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Expected combined ratio</div>
+            <div className="text-[10.5px] font-semibold text-fog">Expected combined ratio</div>
             <div className="mt-1 text-[22px] font-semibold text-ink">{quote.expectedCombinedRatio}%</div>
           </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-mist/70 bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-mist/60 text-[11px] font-semibold uppercase tracking-[0.14em] text-fog">Coverage breakdown</div>
+        <div className="px-4 py-3 border-b border-mist/60 text-[11px] font-semibold text-fog">Coverage breakdown</div>
         <table className="w-full text-[12.5px]">
           <thead className="bg-snow/40 text-smoke">
             <tr>
@@ -910,7 +992,7 @@ function StepQuote() {
 
       <div className="grid grid-cols-2 gap-5">
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog">Deductible sensitivity</div>
+          <div className="text-[11px] font-semibold text-fog">Deductible sensitivity</div>
           <div className="mt-3 flex items-center gap-3">
             <span className="text-[11.5px] text-smoke">AOP deductible</span>
             <input type="range" min={5} max={50} step={5} value={ded} onChange={(e) => setDed(Number(e.target.value))} className="flex-1 accent-electric" />
@@ -926,7 +1008,7 @@ function StepQuote() {
           </div>
         </div>
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Benchmark comparison</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Benchmark comparison</div>
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="w-28 text-[11.5px] text-smoke">This risk</div>
@@ -948,7 +1030,7 @@ function StepQuote() {
       </div>
 
       <div>
-        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Alternative pricing options</div>
+        <div className="text-[11px] font-semibold text-fog mb-2">Alternative pricing options</div>
         <div className="grid grid-cols-3 gap-3">
           {quote.alternatives.map((a) => {
             const rec = a.tier.startsWith("Balanced");
@@ -956,7 +1038,7 @@ function StepQuote() {
               <div key={a.tier} className={`rounded-xl border p-4 ${rec ? "border-electric/40 bg-ice/20" : "border-mist/70 bg-white"}`}>
                 <div className="flex items-center justify-between">
                   <div className="text-[12.5px] font-semibold text-ink">{a.tier}</div>
-                  {rec && <span className="text-[10px] font-semibold uppercase tracking-widest text-electric">AI pick</span>}
+                  {rec && <span className="text-[10px] font-semibold text-electric">AI pick</span>}
                 </div>
                 <div className="mt-2 text-[20px] font-semibold text-ink tabular-nums">${a.premium.toLocaleString()}</div>
                 <div className="text-[11px] text-smoke">Rate {a.rate}% · {a.ded}</div>
@@ -968,7 +1050,7 @@ function StepQuote() {
       </div>
 
       <div className="rounded-xl border border-mist/70 bg-snow/40 p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">AI pricing reasoning</div>
+        <div className="text-[11px] font-semibold text-fog mb-2">AI pricing reasoning</div>
         <ul className="space-y-1">
           {quote.reasoning.map((r) => (
             <li key={r} className="flex items-start gap-2 text-[12.5px] text-ink">
@@ -987,7 +1069,7 @@ function StepDecision() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-electric/25 bg-gradient-to-br from-ice/40 to-white p-5">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-electric">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-electric">
           <Gavel className="h-3.5 w-3.5" /> Decision Agent — final recommendation
         </div>
         <div className="mt-2 flex items-baseline gap-3">
@@ -1008,7 +1090,7 @@ function StepDecision() {
 
       <div className="grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-leaf/25 bg-leaf/[0.05] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-leaf mb-2">Supporting factors</div>
+          <div className="text-[11px] font-semibold text-leaf mb-2">Supporting factors</div>
           <ul className="space-y-1.5">
             {decision.supporting.map((s) => (
               <li key={s} className="flex items-start gap-2 text-[12px] text-ink">
@@ -1018,7 +1100,7 @@ function StepDecision() {
           </ul>
         </div>
         <div className="rounded-xl border border-coral/25 bg-coral/[0.05] p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-coral mb-2">Blocking issues</div>
+          <div className="text-[11px] font-semibold text-coral mb-2">Blocking issues</div>
           <ul className="space-y-1.5">
             {decision.blocking.map((s) => (
               <li key={s} className="flex items-start gap-2 text-[12px] text-ink">
@@ -1028,7 +1110,7 @@ function StepDecision() {
           </ul>
         </div>
         <div className="rounded-xl border border-amber-300/60 bg-amber-50/50 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-700 mb-2">Remaining uncertainty</div>
+          <div className="text-[11px] font-semibold text-amber-700 mb-2">Remaining uncertainty</div>
           <ul className="space-y-1.5">
             {decision.uncertainty.map((s) => (
               <li key={s} className="flex items-start gap-2 text-[12px] text-ink">
@@ -1041,7 +1123,7 @@ function StepDecision() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Conditions before binding</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Conditions before binding</div>
           <ul className="space-y-1.5">
             {decision.conditionsBind.map((c) => (
               <li key={c} className="flex items-start gap-2 text-[12.5px] text-ink">
@@ -1051,7 +1133,7 @@ function StepDecision() {
           </ul>
         </div>
         <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Conditions after binding</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Conditions after binding</div>
           <ul className="space-y-1.5">
             {decision.conditionsPost.map((c) => (
               <li key={c} className="flex items-start gap-2 text-[12.5px] text-ink">
@@ -1064,9 +1146,9 @@ function StepDecision() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-mist/70 bg-snow/40 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Pricing justification</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Pricing justification</div>
           <p className="text-[12.5px] leading-relaxed text-ink">{decision.pricingJustification}</p>
-          <div className="mt-3 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Suggested endorsements</div>
+          <div className="mt-3 text-[10.5px] font-semibold text-fog">Suggested endorsements</div>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {decision.endorsements.map((e) => (
               <span key={e} className="rounded-full border border-electric/25 bg-white px-2.5 py-0.5 text-[11px] font-mono text-electric">{e}</span>
@@ -1074,10 +1156,10 @@ function StepDecision() {
           </div>
         </div>
         <div className="rounded-xl border border-mist/70 bg-snow/40 p-4">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-2">Why AI chose this recommendation</div>
+          <div className="text-[11px] font-semibold text-fog mb-2">Why AI chose this recommendation</div>
           <p className="text-[12.5px] leading-relaxed text-ink">{decision.reasoning}</p>
           <div className="mt-3 rounded-lg border border-mist/60 bg-white p-3">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-fog">Alternative considered</div>
+            <div className="text-[10.5px] font-semibold text-fog">Alternative considered</div>
             <div className="text-[12.5px] font-semibold text-ink">{decision.alternative.label}</div>
             <div className="text-[11.5px] text-smoke leading-relaxed">{decision.alternative.reason}</div>
           </div>
@@ -1085,7 +1167,7 @@ function StepDecision() {
       </div>
 
       <div className="rounded-xl border border-mist/70 bg-white p-4">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-fog mb-1">Human review notes</div>
+        <div className="text-[11px] font-semibold text-fog mb-1">Human review notes</div>
         <p className="text-[12.5px] leading-relaxed text-ink">{decision.humanNotes}</p>
       </div>
     </div>
@@ -1098,7 +1180,7 @@ function StepAudit() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-fog">
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-fog">
           <ClipboardList className="h-3.5 w-3.5 text-electric" /> Chronological investigation notebook
         </div>
         <div className="text-[11.5px] text-smoke">{auditTrail.length} entries · started 09:40:12</div>

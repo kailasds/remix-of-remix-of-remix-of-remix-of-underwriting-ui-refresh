@@ -19,7 +19,7 @@ const aiKpis = [
 
 function Dashboard() {
   return (
-    <div className="mx-auto max-w-[1400px] px-8 py-8">
+    <div className="w-full px-8 py-8">
       <div className="mb-8 flex items-end justify-between animate-fade-up">
         <div>
           <Eyebrow>Workspace overview</Eyebrow>
@@ -165,7 +165,7 @@ function Dashboard() {
           <div className="border-t border-mist/60">
             <table className="w-full text-[13px]">
               <thead>
-                <tr className="border-b border-mist/60 bg-snow/50 text-left text-[11px] uppercase tracking-wider text-fog">
+                <tr className="border-b border-mist/60 bg-snow/50 text-left text-[11px] text-fog">
                   <th className="px-6 py-2.5 font-medium">Reference</th>
                   <th className="py-2.5 font-medium">Insured</th>
                   <th className="py-2.5 font-medium">Sum insured</th>
@@ -203,7 +203,7 @@ function Dashboard() {
                   <span className="h-1.5 w-1.5 rounded-full bg-electric" />
                 </span>
                 {i < activity.length - 1 && <span className="absolute left-[7px] top-6 h-full w-px bg-mist/70" />}
-                <div className="text-[11px] uppercase tracking-wider text-fog">{a.t}</div>
+                <div className="text-[11px] text-fog">{a.t}</div>
                 <div className="mt-0.5 text-[13px] leading-snug text-ink">{a.text}</div>
               </li>
             ))}

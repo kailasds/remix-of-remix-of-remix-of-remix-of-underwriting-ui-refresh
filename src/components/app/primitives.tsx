@@ -6,7 +6,7 @@ export function Card({ className = "", children }: { className?: string; childre
 }
 
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`text-[10.5px] font-semibold uppercase tracking-[0.16em] text-fog ${className}`}>{children}</div>;
+  return <div className={`text-[10.5px] font-semibold text-fog ${className}`}>{children}</div>;
 }
 
 export function PillButton({ children, variant = "primary", className = "", ...props }: any) {

@@ -59,39 +59,39 @@ function Queue() {
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead className="sticky top-0">
-              <tr className="border-b border-mist/60 bg-snow/60 text-left text-[10.5px] uppercase tracking-wider text-fog">
-                <th className="w-10 py-3 pl-6"><input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={(e) => setSelected(e.target.checked ? filtered.map(c => c.id) : [])} className="h-3.5 w-3.5 rounded border-mist accent-electric" /></th>
-                <th className="py-3 font-medium">Reference</th>
-                <th className="py-3 font-medium">Insured</th>
-                <th className="py-3 font-medium">Product</th>
-                <th className="py-3 font-medium">Sum insured</th>
-                <th className="py-3 font-medium">Broker</th>
-                <th className="py-3 font-medium">Risk</th>
-                <th className="py-3 font-medium">Completeness</th>
-                <th className="py-3 font-medium">Status</th>
-                <th className="py-3 font-medium">Due</th>
-                <th className="py-3 pr-6 font-medium"></th>
+              <tr className="border-b border-mist/60 bg-snow/60 text-left text-[10.5px] text-fog">
+                <th className="w-10 py-3 pl-6 align-middle"><input type="checkbox" checked={selected.length === filtered.length && filtered.length > 0} onChange={(e) => setSelected(e.target.checked ? filtered.map(c => c.id) : [])} className="h-3.5 w-3.5 rounded border-mist accent-electric" /></th>
+                <th className="py-3 px-3 font-medium whitespace-nowrap">Reference</th>
+                <th className="py-3 px-3 font-medium">Insured</th>
+                <th className="py-3 px-3 font-medium">Product</th>
+                <th className="py-3 px-3 font-medium whitespace-nowrap">Sum insured</th>
+                <th className="py-3 px-3 font-medium">Broker</th>
+                <th className="py-3 px-3 font-medium min-w-[80px] whitespace-nowrap">Risk</th>
+                <th className="py-3 px-3 font-medium min-w-[160px] whitespace-nowrap">Completeness</th>
+                <th className="py-3 px-3 font-medium min-w-[150px] whitespace-nowrap">Status</th>
+                <th className="py-3 px-3 font-medium whitespace-nowrap">Due</th>
+                <th className="py-3 pr-6 pl-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
                 <tr key={c.id} className="group border-b border-mist/40 last:border-0 transition-colors hover:bg-snow/60">
-                  <td className="py-3 pl-6"><input type="checkbox" checked={selected.includes(c.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, c.id] : selected.filter(x => x !== c.id))} className="h-3.5 w-3.5 rounded border-mist accent-electric" /></td>
-                  <td className="py-3"><Link to="/case/$id" params={{ id: c.id }} className="font-medium text-electric hover:underline">{c.ref}</Link></td>
-                  <td className="py-3 font-medium text-ink">{c.insured}</td>
-                  <td className="py-3 max-w-[240px] truncate text-smoke">{c.product}</td>
-                  <td className="py-3 tabular-nums text-ink">{formatUSD(c.sumInsured)}</td>
-                  <td className="py-3 max-w-[180px] truncate text-smoke">{c.broker}</td>
-                  <td className="py-3"><RiskDot score={c.riskScore} /></td>
-                  <td className="py-3">
+                  <td className="py-3 pl-6 align-middle"><input type="checkbox" checked={selected.includes(c.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, c.id] : selected.filter(x => x !== c.id))} className="h-3.5 w-3.5 rounded border-mist accent-electric" /></td>
+                  <td className="py-3 px-3 align-middle whitespace-nowrap"><Link to="/case/$id" params={{ id: c.id }} className="font-medium text-electric hover:underline">{c.ref}</Link></td>
+                  <td className="py-3 px-3 align-middle font-medium text-ink max-w-[220px] truncate">{c.insured}</td>
+                  <td className="py-3 px-3 align-middle max-w-[200px] truncate text-smoke">{c.product}</td>
+                  <td className="py-3 px-3 align-middle tabular-nums text-ink whitespace-nowrap">{formatUSD(c.sumInsured)}</td>
+                  <td className="py-3 px-3 align-middle max-w-[160px] truncate text-smoke">{c.broker}</td>
+                  <td className="py-3 px-3 align-middle"><RiskDot score={c.riskScore} /></td>
+                  <td className="py-3 px-3 align-middle">
                     <div className="flex items-center gap-2">
                       <div className="w-20"><ProgressBar value={c.completeness} tone={c.completeness > 80 ? "leaf" : c.completeness > 60 ? "electric" : "coral"} /></div>
                       <span className="tabular-nums text-[12px] text-smoke">{c.completeness}%</span>
                     </div>
                   </td>
-                  <td className="py-3"><AIStatus c={c} /></td>
-                  <td className="py-3 tabular-nums text-[12.5px] text-smoke">{c.due}</td>
-                  <td className="py-3 pr-6">
+                  <td className="py-3 px-3 align-middle"><AIStatus c={c} /></td>
+                  <td className="py-3 px-3 align-middle tabular-nums text-[12.5px] text-smoke whitespace-nowrap">{c.due}</td>
+                  <td className="py-3 pr-6 pl-3 align-middle">
                     <Link to="/case/$id" params={{ id: c.id }}>
                       <button className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors ${c.status === "In Progress" ? "bg-[#fff4d6] text-[#8a5a00] hover:bg-[#ffe8b0]" : "bg-[#0d111b] text-white hover:bg-[#1a1f2e]"}`}>
                         {c.status === "In Progress" ? "Resume" : "Process"} <ArrowRight className="h-3 w-3" />
