@@ -4,12 +4,15 @@ import {
   Sparkles, Search, Layers, DollarSign, Gavel, ClipboardList,
   CheckCircle2, AlertTriangle, Info, Zap, TrendingUp, ShieldCheck, ChevronDown,
   Lightbulb, Compass, MessageSquare, ArrowRight, Filter, ChevronLeft, ChevronRight,
-  X, FileCheck2, Loader2, MapPin, History, Handshake, Scale,
+  X, FileCheck2, Loader2, MapPin, History, Handshake, Scale, Gauge, Building2, Database,
 } from "lucide-react";
 import {
-  aiBrief, riskStory, quote, decision, auditTrail,
+  aiBrief, quote, decision, auditTrail,
 } from "../../lib/journey";
 import { FindingCategoryDetail } from "./FindingCategoryDetail";
+import {
+  RiskStorySummary, RiskStoryProperty, RiskStoryProtections, RiskStoryDataSources, RiskStoryNarrative,
+} from "./RiskStoryDetail";
 import { SourceChip } from "./primitives";
 
 
@@ -797,115 +800,45 @@ function StepFindings() {
 
 /* ─────────────── Step 3 · Risk Story ─────────────── */
 
+const RISK_SUBTABS = [
+  { id: "summary", label: "Risk Summary", icon: Gauge },
+  { id: "property", label: "Property Details", icon: Building2 },
+  { id: "protections", label: "Risk Protections", icon: ShieldCheck },
+  { id: "sources", label: "Data Sources", icon: Database },
+  { id: "narrative", label: "Narrative & Drivers", icon: Compass },
+] as const;
+
+type RiskSubtab = (typeof RISK_SUBTABS)[number]["id"];
+
 function StepRisk() {
-  const toneMap: Record<string, string> = {
-    leaf: "border-leaf/25 bg-leaf/[0.05] text-leaf",
-    amber: "border-amber-300/60 bg-amber-50/50 text-amber-700",
-    coral: "border-coral/25 bg-coral/[0.05] text-coral",
-  };
-  const maxLoss = Math.max(...riskStory.lossTrends.series.map((s) => s.incurred), 1);
+  const [tab, setTab] = useState<RiskSubtab>("summary");
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl border border-mist/70 bg-gradient-to-br from-snow/60 to-white p-5">
-        <div className="flex items-center gap-2 text-[11px] font-semibold text-fog">
-          <Compass className="h-3.5 w-3.5 text-electric" /> Overall risk narrative
-        </div>
-        <p className="mt-2 text-[14px] leading-relaxed text-ink">{riskStory.narrative}</p>
+    <div className="space-y-5">
+      <div className="flex items-center gap-1 rounded-t-xl border-b border-mist/60 bg-ice/50 px-2 pt-1 overflow-x-auto overflow-y-hidden">
+        {RISK_SUBTABS.map((t) => {
+          const active = tab === t.id;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`relative flex items-center gap-1.5 rounded-t-lg px-3 py-2.5 text-[13.5px] font-semibold whitespace-nowrap transition-colors ${
+                active ? "bg-white text-electric" : "text-smoke hover:text-ink hover:bg-white/50"
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {t.label}
+              {active && <span className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-electric" />}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        {riskStory.visualCards.map((c) => (
-          <div key={c.label} className={`rounded-xl border p-3.5 ${toneMap[c.tone] || toneMap.leaf}`}>
-            <div className="text-[10.5px] font-semibold text-fog">{c.label}</div>
-            <div className="mt-1 text-[16px] font-semibold text-ink">{c.value}</div>
-            <div className="mt-0.5 text-[11px] text-smoke">{c.detail}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl border border-leaf/25 bg-leaf/[0.05] p-4">
-          <div className="text-[11px] font-semibold text-leaf mb-2">Positive factors</div>
-          <ul className="space-y-1.5">
-            {riskStory.positives.map((p) => (
-              <li key={p} className="flex items-start gap-2 text-[12.5px] text-ink">
-                <CheckCircle2 className="h-3.5 w-3.5 text-leaf mt-0.5 shrink-0" /> {p}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-xl border border-amber-300/60 bg-amber-50/50 p-4">
-          <div className="text-[11px] font-semibold text-amber-700 mb-2">Watch items</div>
-          <ul className="space-y-1.5">
-            {riskStory.watchItems.map((p) => (
-              <li key={p} className="flex items-start gap-2 text-[12.5px] text-ink">
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" /> {p}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-mist/70 bg-white p-4">
-        <div className="text-[11px] font-semibold text-fog mb-3">Risk drivers (weighted)</div>
-        <div className="space-y-2.5">
-          {riskStory.drivers.map((d) => (
-            <div key={d.name}>
-              <div className="flex items-baseline justify-between text-[12px]">
-                <span className="text-ink font-medium">{d.name}</span>
-                <span className="text-smoke">{d.note} · <span className="text-electric font-semibold tabular-nums">{d.weight}%</span></span>
-              </div>
-              <div className="mt-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
-                <div className="h-full rounded-full bg-gradient-to-r from-electric to-iris" style={{ width: `${d.weight * 2}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-        <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold text-fog mb-2">Suggested endorsements</div>
-          <div className="space-y-2">
-            {riskStory.endorsements.map((e) => (
-              <div key={e.code} className="rounded-lg border border-mist/60 bg-snow/40 p-2.5">
-                <div className="flex items-baseline justify-between">
-                  <div className="text-[12.5px] font-semibold text-ink">{e.name}</div>
-                  <span className="text-[10.5px] font-mono text-electric">{e.code}</span>
-                </div>
-                <div className="text-[11.5px] text-smoke">{e.why}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="rounded-xl border border-mist/70 bg-white p-4">
-          <div className="text-[11px] font-semibold text-fog mb-2">Loss trends (5-year)</div>
-          <p className="text-[12px] text-smoke leading-relaxed">{riskStory.lossTrends.summary}</p>
-          <div className="mt-3 grid grid-cols-6 gap-2 items-end h-[100px]">
-            {riskStory.lossTrends.series.map((s) => (
-              <div key={s.year} className="flex flex-col items-center gap-1">
-                <div className="w-full rounded-t-md bg-gradient-to-t from-electric to-iris" style={{ height: `${(s.incurred / maxLoss) * 80 + 4}px` }} />
-                <div className="text-[10px] text-fog">{s.year}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-        {[
-          { title: "Property intelligence", body: riskStory.propertyIntel },
-          { title: "CAT exposure summary", body: riskStory.catExposure },
-          { title: "Fraud assessment", body: riskStory.fraud },
-          { title: "Financial assessment", body: riskStory.financial },
-          { title: "Compliance summary", body: riskStory.compliance },
-        ].map((c) => (
-          <div key={c.title} className="rounded-xl border border-mist/70 bg-white p-4">
-            <div className="text-[11px] font-semibold text-fog">{c.title}</div>
-            <p className="mt-1.5 text-[12.5px] text-ink leading-relaxed">{c.body}</p>
-          </div>
-        ))}
-      </div>
+      {tab === "summary" && <RiskStorySummary />}
+      {tab === "property" && <RiskStoryProperty />}
+      {tab === "protections" && <RiskStoryProtections />}
+      {tab === "sources" && <RiskStoryDataSources />}
+      {tab === "narrative" && <RiskStoryNarrative />}
     </div>
   );
 }

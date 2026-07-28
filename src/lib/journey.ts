@@ -448,6 +448,192 @@ export const riskStory = {
   ],
 };
 
+/* ─────────────────────── Step 3 – Risk Story: Peril Scorecard ─────────────────────── */
+
+export type PerilBand = "low" | "moderate" | "high";
+export type FactorDirection = "increases" | "reduces" | "neutral";
+
+export type PerilFactor = {
+  factor: string;
+  detail: string;
+  value: string;
+  source: string;
+  weight: number;
+  direction: FactorDirection;
+};
+
+export type Peril = {
+  key: string;
+  label: string;
+  score: number;
+  band: PerilBand;
+  factors: PerilFactor[];
+};
+
+export type AiInsight = { badge: string; confidence: number; body: string; bullets: string[] };
+
+export const riskScorecard = {
+  overallScore: 54,
+  overallBand: "moderate" as PerilBand,
+  aiSummary: {
+    badge: "Moderate Risk",
+    confidence: 89,
+    body: "Coastal Ridge Cold Storage is a well-protected ISO Class 4 refrigerated warehouse (PC 3, full sprinkler coverage) that meaningfully offsets an above-average wind/hail and partial flood exposure typical of the Jacksonville coastal market. This narrative synthesizes ISO, CoreLogic, FEMA, NOAA and USGS data alongside the inspection report and aerial imagery — expand any peril below for its full weighted factor-level derivation.",
+    bullets: [
+      "Primary driver of the composite score is wind/hail exposure (score 72 — High) given the Tier-2 coastal wind band and a confirmed $12,300 hail loss in 2021.",
+      "Flood exposure is moderate: FEMA Zone AE covers the primary parcel, but 2.5 ft of freeboard above BFE meaningfully reduces expected severity.",
+      "Fire, crime and liability exposures are all favorable given sprinklers, monitored alarm, layered security and the low-hazard refrigerated-storage occupancy.",
+      "Recommend confirming named-storm deductible structure given the Tier-2 wind zone and 8-year-old TPO roof.",
+    ],
+  } as AiInsight,
+  perils: [
+    {
+      key: "fire", label: "Fire", score: 20, band: "low",
+      factors: [
+        { factor: "ISO Public Protection Class", detail: "PPC 3 is strong — top quartile nationally for refrigerated-warehouse risks.", value: "PPC 3", source: "Verisk / ISO", weight: 25, direction: "reduces" },
+        { factor: "Construction Class", detail: "Steel/IMP construction significantly limits fire spread and structural collapse risk.", value: "Class 4 – Non-Combustible", source: "CoreLogic + Submission", weight: 20, direction: "reduces" },
+        { factor: "Sprinkler System", detail: "Full NFPA 13 coverage with current inspections and no open impairments is the single largest fire-score reducer.", value: "NFPA 13 wet-pipe, 100% coverage", source: "Insured Submission", weight: 20, direction: "reduces" },
+        { factor: "Occupancy Hazard", detail: "Non-hazardous commodity storage; no flammable liquids or Class III+ packaging.", value: "Refrigerated storage (COPE Class 483)", source: "ISO Class Code", weight: 10, direction: "reduces" },
+        { factor: "Wildfire Hazard Severity", detail: "No wildland-fire adjacency in the surrounding parcel.", value: "Minimal — dense industrial surroundings", source: "Map & GIS Data Layers", weight: 10, direction: "reduces" },
+        { factor: "Nearest Hydrant Distance", detail: "Well within the 300 ft preferred threshold for PC 3 territory.", value: "112 ft", source: "Verisk / ISO", weight: 5, direction: "reduces" },
+        { factor: "Adjacent Exposure", detail: "No combustible neighboring occupancy within exposure distance.", value: "Paved surface lot, 40 ft east", source: "Satellite / Aerial Imagery", weight: 5, direction: "reduces" },
+        { factor: "Vegetation / Tree Canopy", detail: "Clear roofline reduces fire-spread and debris-accumulation risk.", value: "No canopy within 20 ft of roofline", source: "Satellite / Aerial Imagery", weight: 5, direction: "reduces" },
+      ],
+    },
+    {
+      key: "wind", label: "Wind / Hail", score: 72, band: "high",
+      factors: [
+        { factor: "Geographic Exposure Zone", detail: "The Wind/Hail Exposure overlay places the parcel within a Tier-2 high-exposure band; no geographic mitigation available.", value: "Atlantic Coastal Tier-2 Wind Band", source: "Map & GIS Data Layers / NOAA", weight: 28, direction: "increases" },
+        { factor: "Historical Hail Events (10 yr, 5 mi)", detail: "5 hail events within 5 miles over 10 years is above the national warehouse benchmark of ~2 events.", value: "5 events, max 1.5 in diameter", source: "NOAA Storm Events Database", weight: 20, direction: "increases" },
+        { factor: "Named Storm History", detail: "Two named-storm impacts in 9 years elevate long-term frequency assumptions, though neither made direct landfall on the parcel.", value: "Irma (2017), Ian (2022)", source: "NOAA Storm Events Database", weight: 12, direction: "increases" },
+        { factor: "Prior Wind/Hail Loss (2021)", detail: "Confirmed loss demonstrates site vulnerability; roof condition score of 78/100 post-repair is adequate but warrants monitoring.", value: "$12,300 — roof damage", source: "Loss Run – Insured Submission", weight: 13, direction: "increases" },
+        { factor: "Roof Type & Age", detail: "TPO is hail-susceptible above ~1.5 in; 8-year age is within useful life but not new.", value: "TPO membrane, 8 years old", source: "CoreLogic + Submission", weight: 10, direction: "neutral" },
+        { factor: "Roof Condition Score", detail: "Above the 75-point threshold that materially reduces expected wind/hail severity.", value: "78 / 100 (CoreLogic)", source: "CoreLogic Property Intelligence", weight: 7, direction: "reduces" },
+        { factor: "Roof Drainage / Ponding", detail: "Clean roofline with functioning drainage limits water-intrusion severity after a wind event.", value: "No ponding observed, proper slope & drains", source: "Satellite / Aerial Imagery", weight: 10, direction: "reduces" },
+      ],
+    },
+    {
+      key: "flood", label: "Flood", score: 52, band: "moderate",
+      factors: [
+        { factor: "Flood Zone Designation", detail: "Zone AE requires flood coverage consideration; base flood elevation applies to the primary warehouse.", value: "Zone AE (primary), Zone X (office)", source: "FEMA National Flood Hazard Layer", weight: 35, direction: "increases" },
+        { factor: "Elevation / Freeboard", detail: "Finished floor sits meaningfully above BFE, reducing expected flood severity relative to at-grade Zone AE risk.", value: "2.5 ft above Base Flood Elevation", source: "FEMA + Inspection Report", weight: 25, direction: "reduces" },
+        { factor: "Distance to Nearest Waterbody", detail: "Proximity to a tidal-influenced waterway adds storm-surge-adjacent exposure during major named storms.", value: "1.2 mi to St. Johns River tributary", source: "USGS / Map & GIS Data Layers", weight: 15, direction: "increases" },
+        { factor: "Historical Flood Claims", detail: "No flood-related claims despite two named-storm seasons in the exposure window.", value: "None in 10 years", source: "Loss Run – Insured Submission", weight: 15, direction: "reduces" },
+        { factor: "Local Drainage Infrastructure", detail: "Recent capacity upgrades in the surrounding drainage basin lower localized ponding risk.", value: "Municipal stormwater system upgraded 2021", source: "Duval County Public Works", weight: 10, direction: "reduces" },
+      ],
+    },
+    {
+      key: "crime", label: "Crime / Theft", score: 22, band: "low",
+      factors: [
+        { factor: "Local Crime Index", detail: "Property sits in a below-median crime tract relative to the broader Jacksonville metro.", value: "34 / 100 (below city median)", source: "SafeStreet Crime Index Q1 2026", weight: 40, direction: "reduces" },
+        { factor: "Security System", detail: "Layered physical security materially reduces theft and vandalism exposure.", value: "24-camera CCTV, badge access, on-site guard", source: "Inspection Report", weight: 25, direction: "reduces" },
+        { factor: "Nearest Police Response", detail: "Response time is within the preferred underwriting threshold for commercial property.", value: "~6 min average", source: "Duval County Sheriff's Office", weight: 15, direction: "reduces" },
+        { factor: "Neighboring Occupancy Risk", detail: "No adjacent occupancies known to elevate area theft frequency.", value: "Light industrial park", source: "Satellite / Aerial Imagery", weight: 10, direction: "reduces" },
+        { factor: "Cargo / Inventory Portability", detail: "Refrigerated inventory has limited black-market resale value relative to general merchandise.", value: "Palletized frozen goods, low resale liquidity", source: "Insured Submission", weight: 10, direction: "reduces" },
+      ],
+    },
+    {
+      key: "liability", label: "General Liability", score: 24, band: "low",
+      factors: [
+        { factor: "GL Loss History", detail: "Open claim signals a housekeeping/controls gap; property line is unaffected but the item is being tracked.", value: "1 open claim (2024 slip-and-fall), $18.5K paid / $5K reserved", source: "Loss Run", weight: 30, direction: "increases" },
+        { factor: "Premises Foot Traffic", detail: "Low foot-traffic occupancy with no retail or public-facing operations limits slip-and-fall frequency.", value: "Warehouse — no public access", source: "Insured Submission", weight: 25, direction: "reduces" },
+        { factor: "Contractual Risk Transfer", detail: "Standard risk-transfer language on third-party contracts limits residual GL exposure.", value: "Hold-harmless + additional-insured clauses standard", source: "Submission", weight: 20, direction: "reduces" },
+        { factor: "Product / Completed Operations", detail: "No products-completed-operations exposure beyond basic bailee/storage liability.", value: "Storage-only, no manufacturing", source: "ISO Class Code", weight: 15, direction: "reduces" },
+        { factor: "Safety Program", detail: "Formal safety program reduces likelihood of repeat premises-liability incidents.", value: "Documented housekeeping & safety walkthroughs", source: "Inspection Report", weight: 10, direction: "reduces" },
+      ],
+    },
+  ] as Peril[],
+};
+
+export const riskPropertyProfile = {
+  aiSummary: {
+    badge: "Low Risk",
+    confidence: 93,
+    body: "Construction and occupancy are favorable: non-combustible steel/IMP construction, single-story refrigerated warehouse occupancy with a roof re-coated in 2026 and no reported structural concerns.",
+    bullets: [
+      "ISO Class 4 non-combustible construction is favorable relative to the broader industrial portfolio.",
+      "Refrigerated general-merchandise occupancy carries low combustibility versus hazardous-storage warehouses.",
+      "Roof is 8 years into an expected 20+ year TPO membrane lifecycle — within normal wear range.",
+      "No secondary structures or additional occupancies identified on the primary parcel.",
+    ],
+  } as AiInsight,
+  yearBuilt: "2016",
+  stories: "1",
+  sqft: "58,400 sq ft",
+  buildingsDocks: "1 building / 8 dock doors",
+  roof: "TPO single-ply membrane over steel deck (8 yrs old)",
+  sprinklered: "Yes — full coverage (NFPA 13 wet-pipe)",
+  buildingValue: "$3,910,000",
+  contentsBI: "$1,220,000 / $850,000",
+  cope: [
+    { code: "C", text: "Class 4 – Non-Combustible (steel frame / insulated metal panel)" },
+    { code: "O", text: "Refrigerated warehousing – general merchandise (COPE Class 483)" },
+    { code: "P", text: "PC 3, NFPA 13 wet-pipe sprinklers (100% coverage), central-station monitored alarm" },
+    { code: "E", text: "Light industrial corridor; paved surface lot adjacent, no amplification" },
+  ],
+};
+
+export const riskProtectionsPanel = {
+  aiSummary: {
+    badge: "Low Risk",
+    confidence: 91,
+    body: "Fire protection is strong across the board: PC 3 territory, 100% NFPA 13 sprinkler coverage with current inspections, monitored alarm, and layered physical security including guards and CCTV.",
+    bullets: [
+      "Sprinkler 5-year internal/external test and 2025 annual inspection are both current with no open impairments.",
+      "Nearest hydrant (112 ft) and responding station (1.4 mi) are both within preferred underwriting thresholds for PC 3.",
+      "On-site security (guard, CCTV, badge access, fencing) reduces theft and vandalism exposure.",
+      "Backup generator with 36-hour fuel reserve supports cold-chain continuity during grid outages from named storms.",
+    ],
+  } as AiInsight,
+  items: [
+    { icon: "flame", title: "Fire Protection Class 3", lines: ["Duval County Fire Station 14 – 1.4 mi", "Nearest hydrant: 112 ft"] },
+    { icon: "droplet", title: "Sprinkler System", lines: ["Wet-pipe, NFPA 13", "100% of building area", "Last inspected 2025-11-02"] },
+    { icon: "bell", title: "Fire Alarm", lines: ["Central-station monitored", "Simplex 4100ES panel", "Last tested 2026-01-18"] },
+    { icon: "lock", title: "Security", lines: ["8 ft perimeter fencing, gated access", "24-camera CCTV, 60-day retention", "On-site guard nights & weekends"] },
+    { icon: "zap", title: "Backup Power", lines: ["350 kW diesel generator, auto transfer switch", "36-hour run time on-site fuel storage", "Sized for cold-chain continuity"] },
+  ],
+};
+
+export const riskDataSourcesPanel = {
+  aiSummary: {
+    badge: "Low Risk",
+    confidence: 86,
+    body: "Third-party data across ISO, CoreLogic, county records and federal sources is largely consistent and recently refreshed; the one open item is the insured-submitted loss run, which is still pending underwriter review.",
+    bullets: [
+      "ISO and CoreLogic construction/protection details corroborate each other — no material discrepancies found.",
+      "FEMA and USGS hazard layers were last refreshed in 2024 and 2023 respectively — still within acceptable currency for this risk.",
+      "Loss run reflects one material weather-related claim (2021 wind/hail, $12,300) and one open GL claim.",
+      "Imagery feed is current, supporting confidence in the roof and site-condition findings above.",
+    ],
+  } as AiInsight,
+  items: [
+    {
+      title: "ISO Public Protection Classification", org: "Verisk / ISO · Fire Protection", updated: "2025-06-01",
+      fields: [{ k: "PPC Rating", v: "3" }, { k: "Responding Company", v: "Duval County Fire Station 14" }, { k: "Water Supply", v: "Adequate – public hydrant system" }],
+    },
+    {
+      title: "CoreLogic Property Intelligence", org: "CoreLogic · Property Characteristics & Valuation", updated: "2026-01-15",
+      fields: [{ k: "Replacement Cost Estimate", v: "$3.91M" }, { k: "Roof Condition Score", v: "78 / 100" }, { k: "Construction Confidence", v: "High" }],
+    },
+    {
+      title: "Duval County Appraisal District", org: "County Assessor · Public Records", updated: "2025-09-10",
+      fields: [{ k: "Legal Owner", v: "Coastal Ridge Cold Storage, LLC" }, { k: "Last Sale", v: "2016-04-19, $2.9M" }, { k: "Assessed Value", v: "$3.4M" }],
+    },
+    {
+      title: "NOAA / NWS Storm Events Database", org: "NOAA · Weather History", updated: "2026-06-30",
+      fields: [{ k: "Hail Events (5 mi, 10 yr)", v: "5 events, max 1.5 in" }, { k: "Wind Events (5 mi, 10 yr)", v: "3 severe thunderstorm warnings" }, { k: "Named Storm Exposure", v: "Irma (2017), Ian (2022)" }],
+    },
+    {
+      title: "FEMA National Flood Hazard Layer", org: "FEMA · Flood", updated: "2024-03-01",
+      fields: [{ k: "Flood Zone", v: "Zone AE (partial), Zone X (remainder)" }, { k: "Base Flood Elevation", v: "14.0 ft" }, { k: "Lowest Floor Elevation", v: "16.5 ft (2.5 ft freeboard)" }],
+    },
+    {
+      title: "USGS Seismic Hazard Database", org: "USGS · Earthquake", updated: "2023-11-14",
+      fields: [{ k: "Seismic Design Category", v: "A (very low)" }, { k: "Peak Ground Acceleration", v: "0.03g" }, { k: "Nearest Mapped Fault", v: "210 miles" }],
+    },
+  ],
+};
+
 /* ─────────────────────── Step 4 – Quote ─────────────────────── */
 
 export const quote = {
