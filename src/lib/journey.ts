@@ -387,8 +387,6 @@ export const complianceDetail = {
 /* ─────────────────────── Step 3 – Risk Story ─────────────────────── */
 
 export const riskStory = {
-  narrative:
-    "Coastal Ridge presents as a modern, well-maintained refrigerated warehouse operating in a mature Southeast logistics corridor. The building, construction and protection profile are all above the class median, and the insured has demonstrated 5 years of disciplined risk management with a 42% loss ratio through two active hurricane seasons. The primary risk driver is location: the Jacksonville facility sits within FEMA AE flood band and inside a Tier-2 wind zone, requiring a named-storm endorsement and a modestly higher wind deductible. A secondary theme is under-valuation — broker submission values the building at $3.31M against an AI-modelled replacement cost of $3.91M — which is easily addressed via an agreed-value endorsement at bind. Fraud, credit, compliance and OSINT signals are all clean. Net-net, this is a preferred risk that should bind at ~4% below class benchmark with two conditions attached.",
   positives: [
     "Sprinklered ISO Class 4 construction with monitored central station.",
     "Roof re-coated in 2026 with 15-year manufacturer warranty.",
@@ -401,13 +399,6 @@ export const riskStory = {
     "Open GL claim from 2024 slip-and-fall (housekeeping signal).",
     "Business Income limit light relative to spoilage exposure.",
     "Lakeland satellite DC missing from Schedule of Locations.",
-  ],
-  drivers: [
-    { name: "CAT wind & flood", weight: 34, note: "FEMA AE + Tier-2 wind" },
-    { name: "Property valuation", weight: 28, note: "18% delta vs broker" },
-    { name: "Loss history", weight: 18, note: "Clean, one open GL" },
-    { name: "Occupancy hazard", weight: 12, note: "Refrigerated w/ spoilage" },
-    { name: "Financial & fraud", weight: 8, note: "Clean signals" },
   ],
   endorsements: [
     { code: "CP-10-49", name: "Windstorm & Hail — Named Storm Deductible", why: "Coastal FL wind exposure" },
@@ -427,24 +418,231 @@ export const riskStory = {
       { year: 2025, count: 1, incurred: 42_000 },
     ],
   },
-  propertyIntel:
-    "Nearmap aerial dated 2026-01-14 confirms 58,400 sq ft footprint (98% overlap with county assessor). Roof is uniform TPO membrane with no ponding or debris. Loading-dock lighting, bollards and drainage all present. Adjacent parcel is a paved surface lot — no exposure amplification.",
-  catExposure:
-    "AIR Worldwide model returns a 1-in-100 wind loss of $214K and a 1-in-250 flood loss of $58K. Composite CAT PML is 5.5% of TIV — within appetite when paired with CP-10-49 and a 3% named-storm deductible.",
-  fraud:
-    "Zero hits across LexisNexis Accurint, OFAC, sanctions, PEP lists and adverse-media scan. Insured principals verified via Florida driver-license match. Broker producer file clean.",
-  financial:
-    "D&B PAYDEX of 82 (Strong). Experian Intelliscore 78. 12 active trade lines, zero delinquencies in the trailing 24 months. Estimated revenue $18.4M (2025), 8-year positive tax filings.",
-  compliance:
-    "Florida non-admitted eligible. Surplus-lines tax (4.94%) applied. TRIA disclosures on file. No OFAC or export-control triggers. Building complies with 2020 Florida Building Code (post-renovation).",
-  visualCards: [
-    { label: "Property Exposure", value: "Preferred", tone: "leaf", detail: "Above-median COPE" },
-    { label: "Flood Risk", value: "Moderate", tone: "amber", detail: "FEMA AE · 0.2%/yr" },
-    { label: "Wind Risk", value: "Moderate-High", tone: "amber", detail: "Tier-2 · 8.2 km coast" },
-    { label: "Fire Risk", value: "Low", tone: "leaf", detail: "Class 4 · sprinklered" },
-    { label: "Crime Index", value: "34 / 100", tone: "leaf", detail: "Below city median" },
-    { label: "RCV Confidence", value: "High", tone: "leaf", detail: "$3.91M ±3%" },
-    { label: "Occupancy Risk", value: "Moderate", tone: "amber", detail: "Refrigerated spoilage" },
+};
+
+/* ── Risk Story · Risk Summary tab ── */
+
+export type RiskBand = "Low" | "Moderate" | "High";
+
+type FactorRow = { factor: string; detail: string; value: string; source: string; weight: number; direction: "up" | "down" };
+type PerilDerivation = { key: string; label: string; band: RiskBand; factors: FactorRow[] };
+
+export const riskSummaryTab = {
+  status: "review" as FindingStatus,
+  aiSummary: {
+    band: "Moderate Risk" as const,
+    confidence: 90,
+    observation:
+      "Coastal Ridge Cold Storage is a well-protected Class 4 refrigerated warehouse whose sprinklered construction and clean loss history meaningfully offset an above-average wind/hail exposure typical of the Jacksonville coastal corridor. This narrative synthesizes ISO, CoreLogic, FEMA, NOAA and D&B data alongside the Map & GIS and Satellite Imagery sections later in this tab — expand any peril below for its full weighted derivation.",
+    bullets: [
+      "Primary driver of the overall score is wind/hail exposure (score 71 — High) given the Tier-2 coastal wind zone and a prior $12.3K wind & hail loss in 2021.",
+      "Flood exposure is moderate: FEMA Zone AE covers the primary parcel, but the elevated finished-floor freeboard meaningfully reduces expected severity.",
+      "Fire, crime and liability exposures are all favorable given sprinklers, monitored alarm, low-hazard occupancy and site conditions confirmed in the Satellite Imagery section.",
+      "Recommend confirming the named-storm deductible structure and roof maintenance schedule given the 2021 wind/hail loss and the coastal wind-zone rating.",
+    ],
+  },
+  overall: { score: 54, band: "Moderate" as RiskBand },
+  perils: [
+    { key: "fire", label: "Fire", score: 18, band: "Low" as RiskBand },
+    { key: "wind", label: "Wind / Hail", score: 71, band: "High" as RiskBand },
+    { key: "flood", label: "Flood", score: 52, band: "Moderate" as RiskBand },
+    { key: "crime", label: "Crime / Theft", score: 22, band: "Low" as RiskBand },
+    { key: "gl", label: "General Liability", score: 26, band: "Low" as RiskBand },
+  ],
+  derivation: [
+    {
+      key: "fire", label: "Fire", band: "Low",
+      factors: [
+        { factor: "ISO Public Protection Class", detail: "PC 3 is strong — within the top quartile nationally for refrigerated-warehouse risks.", value: "PC 3", source: "Verisk / ISO", weight: 25, direction: "down" },
+        { factor: "Construction Class", detail: "Steel frame / insulated metal panel significantly limits fire spread and structural collapse risk.", value: "Class 4 — Non-Combustible", source: "CoreLogic + Submission", weight: 20, direction: "down" },
+        { factor: "Sprinkler System", detail: "Full NFPA 13 wet-pipe coverage with current inspections and no open impairments is the single largest fire-score reducer.", value: "NFPA 13 wet-pipe, 100% coverage", source: "Insured Submission", weight: 20, direction: "down" },
+        { factor: "Occupancy Hazard", detail: "Refrigerated storage of general merchandise; no flammable liquids, Class III packaging only.", value: "Refrigerated warehousing (COPE 483)", source: "ISO Class Code", weight: 10, direction: "down" },
+        { factor: "Nearest Hydrant Distance", detail: "Within the 300 ft preferred threshold for PC 3 territory.", value: "112 ft", source: "Verisk / ISO", weight: 10, direction: "down" },
+        { factor: "Wildfire Hazard Severity", detail: "Wildfire overlay from Map & GIS shows negligible wildland-fire adjacency.", value: "Minimal — dense urban surroundings", source: "Map & GIS Data Layers", weight: 10, direction: "down" },
+        { factor: "Adjacent Exposure", detail: "Paved surface lot adjacent — no combustible exposure amplification.", value: "Paved lot, 40 ft east", source: "Satellite / Aerial Imagery", weight: 5, direction: "down" },
+      ],
+    },
+    {
+      key: "wind", label: "Wind / Hail", band: "High",
+      factors: [
+        { factor: "Wind Zone (Tier)", detail: "AIR Worldwide places the parcel in a Tier-2 hurricane wind band — the primary driver of the overall score.", value: "Tier 2", source: "AIR Worldwide model", weight: 30, direction: "up" },
+        { factor: "Distance to Coast", detail: "8.2 km from the Atlantic — close enough to see meaningful gust amplification during named-storm events.", value: "8.2 km", source: "AIR Worldwide model", weight: 20, direction: "up" },
+        { factor: "Prior Wind & Hail Loss", detail: "A 2021 wind & hail claim confirms realized exposure, though severity was modest.", value: "$12,300 incurred (2021, closed)", source: "Chubb loss run", weight: 20, direction: "up" },
+        { factor: "Roof Condition", detail: "TPO membrane re-coated in 2026 with a 15-year warranty meaningfully reduces uplift and wind-driven-rain severity.", value: "Re-coated 2026 · 15-yr warranty", source: "Inspection Report", weight: 15, direction: "down" },
+        { factor: "Named-Storm Deductible", detail: "Current 2% named-storm deductible is thin relative to Tier-2 exposure; model assumes a step-up to 3%.", value: "2% of TIV (recommend 3%)", source: "ACORD 140 · Section III", weight: 15, direction: "up" },
+      ],
+    },
+    {
+      key: "flood", label: "Flood", band: "Moderate",
+      factors: [
+        { factor: "FEMA Flood Zone", detail: "Primary parcel sits within FEMA Zone AE — the base driver of the flood score.", value: "Zone AE", source: "FEMA flood map service", weight: 40, direction: "up" },
+        { factor: "Base Flood Elevation / Freeboard", detail: "Finished floor sits above base flood elevation, meaningfully moderating expected severity within the AE zone.", value: "2.1 ft freeboard above BFE", source: "FEMA flood map service", weight: 30, direction: "down" },
+        { factor: "1-in-250 Flood Loss (Modelled)", detail: "AIR Worldwide models a modest expected severity given the freeboard offset.", value: "$58,000", source: "AIR Worldwide model", weight: 20, direction: "up" },
+        { factor: "Flood Coverage Purchased", detail: "No flood coverage currently requested on the submission despite the AE designation.", value: "Not purchased", source: "ACORD 140 · Section III", weight: 10, direction: "up" },
+      ],
+    },
+    {
+      key: "crime", label: "Crime / Theft", band: "Low",
+      factors: [
+        { factor: "Crime Index", detail: "Below the city median for the ZIP code, consistent with a light-industrial corridor.", value: "34 / 100", source: "SafeStreet crime index Q1 2026", weight: 40, direction: "down" },
+        { factor: "Security & Access Control", detail: "Perimeter fencing, badge access and CCTV meaningfully reduce theft and vandalism exposure.", value: "Fenced · badge access · CCTV", source: "Inspection Report", weight: 35, direction: "down" },
+        { factor: "Central-Station Monitoring", detail: "Alarm system is centrally monitored around the clock, including off-hours.", value: "Monitored 24/7", source: "Insured Submission", weight: 25, direction: "down" },
+      ],
+    },
+    {
+      key: "gl", label: "General Liability", band: "Low",
+      factors: [
+        { factor: "5-Year Loss Ratio", detail: "42% loss ratio is 13 points below the class benchmark of 55%.", value: "42% (bench 55%)", source: "Chubb loss run", weight: 40, direction: "down" },
+        { factor: "Open GL Claim", detail: "A 2024 slip-and-fall remains open with a modest reserve — a housekeeping signal rather than a controls failure.", value: "$18.5K paid / $5K reserved, open", source: "Chubb loss run · claim CB-24-0562", weight: 35, direction: "up" },
+        { factor: "Site Housekeeping", detail: "Satellite imagery shows generally tidy loading-dock areas with only minor palletized-goods staging.", value: "Minor staging near south dock", source: "Satellite / Aerial Imagery", weight: 25, direction: "up" },
+      ],
+    },
+  ] as PerilDerivation[],
+};
+
+/* ── Risk Story · Property Details tab ── */
+
+export const propertyDetailsTab = {
+  status: "verified" as FindingStatus,
+  aiSummary: {
+    band: "Low Risk" as const,
+    confidence: 93,
+    observation:
+      "Construction and occupancy are favorable: non-combustible steel/IMP construction, single-story refrigerated warehouse occupancy, with a roof re-coated within the last year and no reported structural concerns.",
+    bullets: [
+      "Class 4 non-combustible construction is favorable relative to the broader refrigerated-warehousing book.",
+      "Refrigerated general-merchandise storage carries low combustibility versus hazardous-storage warehouses.",
+      "Roof was re-coated in 2026 with a 15-year manufacturer warranty — well within normal wear range for an 8-year-old TPO membrane.",
+      "No secondary structures or additional occupancies identified on the parcel beyond the primary warehouse building.",
+    ],
+  },
+  yearBuilt: "2016",
+  renovated: "2022",
+  stories: "1",
+  squareFootage: "58,400 sq ft",
+  buildingsAndDocks: "1 building / 8 dock doors",
+  roof: "TPO single-ply membrane over steel deck (8 yrs old, re-coated 2026)",
+  sprinklered: "Yes — full coverage (NFPA 13 wet-pipe)",
+  buildingValue: "$3,910,000",
+  contentsBI: "$1,220,000 / $850,000",
+  cope: [
+    { label: "Construction", value: "Class 4 — Non-Combustible (Steel Frame / Insulated Metal Panel)", source: "ACORD 140" },
+    { label: "Occupancy", value: "Refrigerated Warehousing — general merchandise (COPE Class 483)", source: "ACORD 125" },
+    { label: "Protection", value: "PC 3, NFPA 13 wet-pipe sprinklers (100% coverage), central-station monitored alarm", source: "Inspection Report" },
+    { label: "Exposure", value: "Light industrial corridor; leased Savannah office is the only secondary location", source: "Nearmap aerial 2026-01-14" },
+  ],
+};
+
+/* ── Risk Story · Risk Protections tab ── */
+
+export const riskProtectionsTab = {
+  status: "verified" as FindingStatus,
+  aiSummary: {
+    band: "Low Risk" as const,
+    confidence: 91,
+    observation:
+      "Fire protection is strong across the board: PC 3 territory, 100% NFPA 13 sprinkler coverage with current inspections, monitored alarm, and layered physical security. Backup power directly supports refrigeration continuity, which is the insured's core spoilage exposure.",
+    bullets: [
+      "Sprinkler 5-year internal/external test and the 2026 annual inspection are both current with no open impairments.",
+      "Nearest hydrant (112 ft) and responding station (1.4 mi) are both within preferred underwriting thresholds for PC 3.",
+      "On-site security (fencing, badge access, CCTV) reduces theft and vandalism exposure.",
+      "Backup generator with 36-hour fuel reserve directly protects refrigerated inventory from spoilage during grid outages.",
+    ],
+  },
+  cards: [
+    { key: "fire-class", icon: "flame", label: "Fire Protection Class", lines: ["PC 3 — Jacksonville Fire Station 14, 1.4 mi", "Nearest hydrant: 112 ft"] },
+    { key: "sprinkler", icon: "droplet", label: "Sprinkler System", lines: ["Wet-pipe, NFPA 13", "100% of building area", "Last inspected 2026-02-11"] },
+    { key: "alarm", icon: "bell", label: "Fire Alarm", lines: ["Central-station monitored", "Simplex 4100ES panel", "Last tested 2026-03-04"] },
+    { key: "security", icon: "lock", label: "Security", lines: ["6 ft perimeter chain-link with gated access", "16-camera CCTV, 60-day retention", "Badge access, monitored off-hours"] },
+    { key: "power", icon: "zap", label: "Backup Power", lines: ["250 kW diesel generator with automatic transfer switch", "36-hour run time on-site fuel storage", "Protects refrigeration continuity"] },
+  ],
+};
+
+/* ── Risk Story · Data Sources tab ── */
+
+export const dataSourcesTab = {
+  status: "verified" as FindingStatus,
+  aiSummary: {
+    band: "High Confidence" as const,
+    confidence: 96,
+    observation:
+      "Eleven third-party and submission data sources were reconciled to build this risk story, spanning protection-class ratings, catastrophe modelling, flood and seismic hazard mapping, aerial imagery, credit, and identity screening. All sources returned current, high-confidence data.",
+    bullets: [
+      "Property and protection-class data (Verisk/ISO, CoreLogic) is cross-checked against the insured's own submission.",
+      "Catastrophe modelling (AIR Worldwide, FEMA, USGS) is refreshed on standard quarterly cycles.",
+      "Aerial imagery is under 6 months old, well within underwriting freshness guidelines.",
+      "No data source returned a stale or unavailable status for this submission.",
+    ],
+  },
+  sources: [
+    { name: "Verisk / ISO", type: "Protection class & construction rating", lastUpdated: "2026-01-08", coverage: "High confidence", status: "Verified" },
+    { name: "CoreLogic", type: "Replacement cost & construction model", lastUpdated: "2026-02-02", coverage: "±3% RCV confidence", status: "Verified" },
+    { name: "FEMA Flood Map Service", type: "Flood zone & base flood elevation", lastUpdated: "2024-03-01", coverage: "Parcel-level", status: "Verified" },
+    { name: "AIR Worldwide", type: "Wind, hurricane & flood CAT modelling", lastUpdated: "2026-01-14", coverage: "1-in-100 / 1-in-250 return periods", status: "Verified" },
+    { name: "USGS", type: "Seismic hazard & fault mapping", lastUpdated: "2023-11-14", coverage: "Regional", status: "Verified" },
+    { name: "Nearmap", type: "Aerial & satellite imagery", lastUpdated: "2026-01-14", coverage: "Full parcel + 300 ft buffer", status: "Verified" },
+    { name: "D&B", type: "Business credit report", lastUpdated: "2026-01-20", coverage: "PAYDEX 82", status: "Verified" },
+    { name: "LexisNexis Accurint", type: "Principal & entity screening", lastUpdated: "2026-01-19", coverage: "OFAC / PEP / adverse media", status: "Verified" },
+    { name: "Chubb (prior carrier)", type: "5-year loss run history", lastUpdated: "2026-01-05", coverage: "2020 – 2025", status: "Verified" },
+    { name: "FL SunBiz", type: "Entity registration & good-standing", lastUpdated: "2026-01-02", coverage: "Record L15000091823", status: "Verified" },
+    { name: "Insured Submission", type: "ACORD 125 / 140, SOV, appraisal", lastUpdated: "2025-11-01", coverage: "14 documents · 312 fields", status: "Review — SOV stale" },
+  ],
+};
+
+/* ── Risk Story · Map & GIS tab ── */
+
+export const mapGisTab = {
+  status: "review" as FindingStatus,
+  aiSummary: {
+    band: "Moderate Risk" as const,
+    confidence: 84,
+    observation:
+      "GIS overlays show the primary parcel fully inside FEMA Zone AE, sitting within a Tier-2 wind/hail exposure band typical of the Jacksonville coastal corridor, with negligible wildfire or seismic exposure.",
+    bullets: [
+      "Flood: full-parcel Zone AE overlap, but 2.1 ft of freeboard above base flood elevation moderates otherwise elevated flood risk.",
+      "Wind/Hail: entire parcel sits within a Tier-2 exposure band — consistent with regional hurricane and hailstorm frequency.",
+      "Wildfire hazard severity is minimal given dense urban surroundings and lack of wildland fuel.",
+      "Seismic exposure is negligible — nearest mapped fault trace is 38 miles away with a very low peak ground acceleration.",
+    ],
+  },
+  flood: { zone: "Zone AE (full parcel)", bfe: "48.0 ft", lowestFloor: "50.1 ft (2.1 ft freeboard)", lastUpdated: "2024-03-01" },
+  seismic: { category: "A (very low)", pga: "0.03g", nearestFault: "38 miles", lastUpdated: "2023-11-14" },
+  lossHistory: { claims: "3 claims / $77,800 incurred", largestLoss: "$42,000 — equipment breakdown (2025)", openClaims: "1 open", lastUpdated: "2026-01-05" },
+  imageryFeed: { source: "Nearmap · Imagery", captureDate: "2026-01-14", resolution: "6.0 cm / pixel", coverage: "Full parcel + 300 ft buffer" },
+  layers: [
+    { key: "flood", label: "Flood Zone (AE)", color: "#0098f2", defaultOn: true },
+    { key: "wind", label: "Wind / Hail Exposure", color: "#f5a623", defaultOn: true },
+    { key: "wildfire", label: "Wildfire Hazard", color: "#5a6472", defaultOn: false },
+    { key: "seismic", label: "Seismic / Fault", color: "#e0455f", defaultOn: false },
+    { key: "hydrant", label: "Fire Station & Hydrants", color: "#e0455f", defaultOn: true },
+  ],
+};
+
+/* ── Risk Story · Satellite Imagery tab ── */
+
+export const satelliteImageryTab = {
+  status: "review" as FindingStatus,
+  aiSummary: {
+    band: "Low Risk" as const,
+    confidence: 88,
+    observation:
+      "Recent aerial imagery (captured 2026-01-14) shows a well-maintained property with a uniform re-coated roof and clear loading-dock areas. One minor vegetation observation is worth routine follow-up; nothing rises to a material exposure.",
+    bullets: [
+      "Roof surface is uniform TPO membrane with no ponding or debris — consistent with the 2026 re-coating.",
+      "Loading-dock lighting, bollards and drainage are all present and in good condition.",
+      "Minor vegetation growth along the northeast fence line is a routine-maintenance note, not a material exposure.",
+      "Adjacent parcel is a paved surface lot — no exposure amplification from neighboring occupancies.",
+    ],
+  },
+  captureDate: "2026-01-14",
+  resolution: "6.0 cm / pixel",
+  observations: [
+    { label: "Roof surface — uniform TPO membrane", detail: "No ponding, debris or membrane damage observed, consistent with the 2026 re-coating.", severity: "good" as const },
+    { label: "Loading dock & drainage", detail: "Dock lighting, bollards and drainage are all present and functioning.", severity: "good" as const },
+    { label: "Rooftop refrigeration units", detail: "Condenser and compressor units appear well-maintained with no visible corrosion.", severity: "good" as const },
+    { label: "Perimeter fencing & lighting", detail: "Fencing and security lighting are intact around the full site perimeter.", severity: "good" as const },
+    { label: "Vegetation — northeast fence line", detail: "Minor vegetation growth along the fence line; recommend routine trim, not a material exposure.", severity: "watch" as const },
+    { label: "Adjacent parcel", detail: "Paved surface lot to the east — no exposure amplification from neighboring occupancies.", severity: "good" as const },
   ],
 };
 

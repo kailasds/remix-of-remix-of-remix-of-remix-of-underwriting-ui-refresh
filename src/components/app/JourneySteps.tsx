@@ -4,15 +4,13 @@ import {
   Sparkles, Search, Layers, DollarSign, Gavel, ClipboardList,
   CheckCircle2, AlertTriangle, Info, Zap, TrendingUp, ShieldCheck, ChevronDown,
   Lightbulb, Compass, MessageSquare, ArrowRight, Filter, ChevronLeft, ChevronRight,
-  X, FileCheck2, Loader2, MapPin, History, Handshake, Scale, Gauge, Building2, Database,
+  X, FileCheck2, Loader2, MapPin, History, Handshake, Scale,
 } from "lucide-react";
 import {
   aiBrief, quote, decision, auditTrail,
 } from "../../lib/journey";
 import { FindingCategoryDetail } from "./FindingCategoryDetail";
-import {
-  RiskStorySummary, RiskStoryProperty, RiskStoryProtections, RiskStoryDataSources, RiskStoryNarrative,
-} from "./RiskStoryDetail";
+import { RiskStoryDetail } from "./RiskStoryDetail";
 import { SourceChip } from "./primitives";
 
 
@@ -93,7 +91,7 @@ export function JourneySteps({
       <div key={active} className="p-6 animate-tab-content">
         {active === "brief" && <StepBrief />}
         {active === "findings" && <StepFindings />}
-        {active === "risk" && <StepRisk />}
+        {active === "risk" && <RiskStoryDetail />}
         {active === "quote" && <StepQuote />}
         {active === "decision" && <StepDecision />}
         {active === "audit" && <StepAudit />}
@@ -799,49 +797,7 @@ function StepFindings() {
 }
 
 /* ─────────────── Step 3 · Risk Story ─────────────── */
-
-const RISK_SUBTABS = [
-  { id: "summary", label: "Risk Summary", icon: Gauge },
-  { id: "property", label: "Property Details", icon: Building2 },
-  { id: "protections", label: "Risk Protections", icon: ShieldCheck },
-  { id: "sources", label: "Data Sources", icon: Database },
-  { id: "narrative", label: "Narrative & Drivers", icon: Compass },
-] as const;
-
-type RiskSubtab = (typeof RISK_SUBTABS)[number]["id"];
-
-function StepRisk() {
-  const [tab, setTab] = useState<RiskSubtab>("summary");
-  return (
-    <div className="space-y-5">
-      <div className="flex items-center gap-1 rounded-t-xl border-b border-mist/60 bg-ice/50 px-2 pt-1 overflow-x-auto overflow-y-hidden">
-        {RISK_SUBTABS.map((t) => {
-          const active = tab === t.id;
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`relative flex items-center gap-1.5 rounded-t-lg px-3 py-2.5 text-[13.5px] font-semibold whitespace-nowrap transition-colors ${
-                active ? "bg-white text-electric" : "text-smoke hover:text-ink hover:bg-white/50"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {t.label}
-              {active && <span className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-electric" />}
-            </button>
-          );
-        })}
-      </div>
-
-      {tab === "summary" && <RiskStorySummary />}
-      {tab === "property" && <RiskStoryProperty />}
-      {tab === "protections" && <RiskStoryProtections />}
-      {tab === "sources" && <RiskStoryDataSources />}
-      {tab === "narrative" && <RiskStoryNarrative />}
-    </div>
-  );
-}
+// Full implementation (sub-tabs, AI-summary-on-top layout) lives in RiskStoryDetail.tsx.
 
 /* ─────────────── Step 4 · Quote ─────────────── */
 

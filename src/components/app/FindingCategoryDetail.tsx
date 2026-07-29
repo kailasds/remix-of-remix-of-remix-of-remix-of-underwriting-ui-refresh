@@ -19,7 +19,7 @@ const STATUS_META: Record<FindingStatus, { label: string; cls: string; dot: stri
   recommendation: { label: "AI Recommendation", cls: "bg-electric/10 text-electric border-electric/25", dot: "bg-electric" },
 };
 
-function ObservationBanner({
+export function ObservationBanner({
   icon: Icon, title, status, observation, recommendation,
 }: {
   icon: ComponentType<{ className?: string }>;
@@ -49,7 +49,7 @@ function ObservationBanner({
 }
 
 /** Small inline icon that opens a preview of the source document for the value it sits next to. */
-function SourceButton({ label, onOpen }: { label: string; onOpen: (label: string) => void }) {
+export function SourceButton({ label, onOpen }: { label: string; onOpen: (label: string) => void }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onOpen(label); }}
@@ -62,7 +62,7 @@ function SourceButton({ label, onOpen }: { label: string; onOpen: (label: string
 }
 
 /** Mocked document preview shown when a SourceButton is clicked. */
-function SourcePreviewModal({ label, onClose }: { label: string; onClose: () => void }) {
+export function SourcePreviewModal({ label, onClose }: { label: string; onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-ink/40 p-6"
@@ -102,7 +102,7 @@ function SourcePreviewModal({ label, onClose }: { label: string; onClose: () => 
 }
 
 /** Inline "why this was flagged / how to resolve it" detail, expanded under a table row. */
-function WhyResolvePanel({ reason, resolution, colSpan }: { reason: string; resolution: string; colSpan: number }) {
+export function WhyResolvePanel({ reason, resolution, colSpan }: { reason: string; resolution: string; colSpan: number }) {
   return (
     <tr className="bg-snow/40">
       <td colSpan={colSpan} className="px-4 py-3 border-t border-mist/50">
@@ -130,7 +130,7 @@ function WhyResolvePanel({ reason, resolution, colSpan }: { reason: string; reso
 }
 
 /** Chevron toggle used on rows that have a WhyResolvePanel to expand. */
-function ExpandToggle({ open }: { open: boolean }) {
+export function ExpandToggle({ open }: { open: boolean }) {
   return open ? (
     <ChevronDown className="h-3.5 w-3.5 text-electric" />
   ) : (
@@ -138,7 +138,7 @@ function ExpandToggle({ open }: { open: boolean }) {
   );
 }
 
-function MetricRow({ items }: { items: { label: string; value: string }[] }) {
+export function MetricRow({ items }: { items: { label: string; value: string }[] }) {
   return (
     <div className={`grid gap-3`} style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
       {items.map((m) => (
@@ -151,7 +151,7 @@ function MetricRow({ items }: { items: { label: string; value: string }[] }) {
   );
 }
 
-function LabelValueGrid({
+export function LabelValueGrid({
   items, onOpenSource, sourceTag = true,
 }: {
   items: { k: string; v: string; source?: string; discrepancy?: FieldDiscrepancy }[];
@@ -180,7 +180,7 @@ function LabelValueGrid({
 }
 
 /** Clickable source tag showing the document name, used where the citation itself is worth surfacing inline. */
-function SourceTag({ label, onOpen }: { label: string; onOpen: (label: string) => void }) {
+export function SourceTag({ label, onOpen }: { label: string; onOpen: (label: string) => void }) {
   return (
     <button
       onClick={(e) => { e.stopPropagation(); onOpen(label); }}
@@ -235,7 +235,7 @@ function DiscrepancyWarning({ discrepancy }: { discrepancy: FieldDiscrepancy }) 
   );
 }
 
-function SectionCard({
+export function SectionCard({
   title, icon: Icon, tone = "text-electric", children,
 }: {
   title: string;
@@ -254,7 +254,7 @@ function SectionCard({
   );
 }
 
-function Chip({ tone, label }: { tone: "leaf" | "amber" | "coral" | "electric" | "smoke"; label: string }) {
+export function Chip({ tone, label }: { tone: "leaf" | "amber" | "coral" | "electric" | "smoke"; label: string }) {
   const map: Record<string, string> = {
     leaf: "border-leaf/25 bg-leaf/10 text-leaf",
     amber: "border-amber-300/60 bg-amber-100/70 text-amber-800",
