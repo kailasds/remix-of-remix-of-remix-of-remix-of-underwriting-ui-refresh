@@ -1,0 +1,382 @@
+From 7712431385d6b9a553a5ac610f86b1330542eecd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 29 Jul 2026 04:06:23 +0000
+Subject: [PATCH 3/3] Add colorful icon chips throughout the Risk Story tab
+
+Replaces flat/uniform icons with a small tone-tinted IconChip pattern
+reused across all six sub-tabs: peril icons (fire/wind/flood/crime/GL)
+on the scorecard and score-derivation accordion, per-card colors on
+Risk Protections, colored COPE glyphs replacing the black letter
+boxes, a leading colored icon per row in Data Sources, icon headers on
+the Map & GIS stat cards, and subject icons on Satellite Imagery
+observations. Colors are drawn from the existing brand palette
+(electric/iris/leaf/coral/amber) and kept distinct from the
+leaf/amber/coral severity coloring already used on scores and status
+chips.
+---
+ src/components/app/RiskStoryDetail.tsx | 170 ++++++++++++++++++-------
+ src/lib/journey.ts                     |  34 ++---
+ 2 files changed, 143 insertions(+), 61 deletions(-)
+
+diff --git a/src/components/app/RiskStoryDetail.tsx b/src/components/app/RiskStoryDetail.tsx
+index 8dae391..741cbb8 100644
+--- a/src/components/app/RiskStoryDetail.tsx
++++ b/src/components/app/RiskStoryDetail.tsx
+@@ -3,7 +3,8 @@ import {
+   Activity, Building2, ShieldCheck, Database, Map as MapIcon, Satellite,
+   Sparkles, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
+   Flame, Droplet, Bell, Lock, Zap, TrendingUp, TrendingDown, Send,
+-  MapPin,
++  MapPin, CloudLightning, Scale, Waves, Home, Package, Snowflake,
++  TreePine, DollarSign, Users, History, FileText,
+ } from "lucide-react";
+ import {
+   riskStory, riskSummaryTab, propertyDetailsTab, riskProtectionsTab,
+@@ -11,6 +12,41 @@ import {
+ } from "../../lib/journey";
+ import { SectionCard, Chip, SourceTag, SourcePreviewModal } from "./FindingCategoryDetail";
+ 
++/* ─────────────── Shared colorful icon-chip palette ─────────────── */
++// A single accent per glyph — reused across sub-tabs so the same subject
++// (e.g. "flood") always reads the same color, distinct from the leaf/amber/
++// coral severity colors used on scores, bars and status chips.
++
++type IconTone = "electric" | "iris" | "leaf" | "coral" | "amber" | "smoke";
++
++const ICON_TONE_CLS: Record<IconTone, { bg: string; text: string }> = {
++  electric: { bg: "bg-electric/10", text: "text-electric" },
++  iris: { bg: "bg-iris/10", text: "text-iris" },
++  leaf: { bg: "bg-leaf/10", text: "text-leaf" },
++  coral: { bg: "bg-coral/10", text: "text-coral" },
++  amber: { bg: "bg-amber-100/70", text: "text-amber-700" },
++  smoke: { bg: "bg-mist/50", text: "text-smoke" },
++};
++
++function IconChip({
++  icon: Icon, tone, size = "h-9 w-9",
++}: { icon: ComponentType<{ className?: string }>; tone: IconTone; size?: string }) {
++  const t = ICON_TONE_CLS[tone];
++  return (
++    <div className={`grid ${size} shrink-0 place-items-center rounded-lg ${t.bg} ${t.text}`}>
++      <Icon className="h-4 w-4" />
++    </div>
++  );
++}
++
++const PERIL_META: Record<string, { icon: ComponentType<{ className?: string }>; tone: IconTone }> = {
++  fire: { icon: Flame, tone: "coral" },
++  wind: { icon: CloudLightning, tone: "iris" },
++  flood: { icon: Droplet, tone: "electric" },
++  crime: { icon: Lock, tone: "amber" },
++  gl: { icon: Scale, tone: "leaf" },
++};
++
+ /* ─────────────── Sub-tab shell ─────────────── */
+ 
+ type RiskTabKey = "summary" | "property" | "protections" | "sources" | "map" | "satellite";
+@@ -143,14 +179,18 @@ function RiskSummarySection() {
+           <div className="flex-1 min-w-[320px] grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+             {d.perils.map((p) => {
+               const tone = scoreTone(p.band);
++              const meta = PERIL_META[p.key];
+               return (
+-                <div key={p.key}>
+-                  <div className="flex items-baseline justify-between text-[12px]">
+-                    <span className="text-ink font-medium">{p.label}</span>
+-                    <span className={`font-semibold tabular-nums ${SCORE_TEXT[tone]}`}>{p.score}</span>
+-                  </div>
+-                  <div className="mt-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
+-                    <div className={`h-full rounded-full ${SCORE_BAR[tone]}`} style={{ width: `${p.score}%` }} />
++                <div key={p.key} className="flex items-center gap-3">
++                  {meta && <IconChip icon={meta.icon} tone={meta.tone} size="h-8 w-8" />}
++                  <div className="flex-1 min-w-0">
++                    <div className="flex items-baseline justify-between text-[12px]">
++                      <span className="text-ink font-medium">{p.label}</span>
++                      <span className={`font-semibold tabular-nums ${SCORE_TEXT[tone]}`}>{p.score}</span>
++                    </div>
++                    <div className="mt-1 h-1.5 rounded-full bg-mist/60 overflow-hidden">
++                      <div className={`h-full rounded-full ${SCORE_BAR[tone]}`} style={{ width: `${p.score}%` }} />
++                    </div>
+                   </div>
+                 </div>
+               );
+@@ -165,6 +205,7 @@ function RiskSummarySection() {
+           {d.derivation.map((peril) => {
+             const isOpen = openPeril === peril.key;
+             const tone = scoreTone(peril.band);
++            const meta = PERIL_META[peril.key];
+             return (
+               <div key={peril.key} className="rounded-xl border border-mist/70 bg-white overflow-hidden">
+                 <button
+@@ -172,6 +213,7 @@ function RiskSummarySection() {
+                   className="flex w-full items-center gap-2.5 px-4 py-3 text-left hover:bg-snow/50 transition-colors"
+                 >
+                   {isOpen ? <ChevronDown className="h-3.5 w-3.5 text-electric shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 text-fog shrink-0" />}
++                  {meta && <IconChip icon={meta.icon} tone={meta.tone} size="h-7 w-7" />}
+                   <span className="text-[13.5px] font-semibold text-ink flex-1">{peril.label}</span>
+                   <Chip tone={tone as "leaf" | "amber" | "coral"} label={peril.band} />
+                 </button>
+@@ -275,11 +317,11 @@ function RiskSummarySection() {
+ 
+ /* ─────────────── Property Details ─────────────── */
+ 
+-const COPE_META = [
+-  { key: "C", label: "Construction" },
+-  { key: "O", label: "Occupancy" },
+-  { key: "P", label: "Protection" },
+-  { key: "E", label: "Exposure" },
++const COPE_META: { icon: ComponentType<{ className?: string }>; tone: IconTone }[] = [
++  { icon: Building2, tone: "electric" },   // Construction
++  { icon: Activity, tone: "iris" },        // Occupancy
++  { icon: ShieldCheck, tone: "leaf" },     // Protection
++  { icon: MapPin, tone: "coral" },         // Exposure
+ ];
+ 
+ function PropertyDetailsSection() {
+@@ -308,22 +350,23 @@ function PropertyDetailsSection() {
+           ))}
+         </div>
+       </SectionCard>
+-      <SectionCard title="COPE Summary" icon={ShieldCheck} tone="text-amber-600">
++      <SectionCard title="COPE Summary" icon={ShieldCheck} tone="text-iris">
+         <div className="divide-y divide-mist/50">
+-          {d.cope.map((c, i) => (
+-            <div key={c.label} className="flex items-start gap-3 px-4 py-3">
+-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#0d111b] text-white text-[13px] font-bold">
+-                {COPE_META[i]?.key ?? "•"}
+-              </div>
+-              <div className="flex-1 min-w-0">
+-                <div className="text-[10.5px] font-semibold text-fog">{c.label}</div>
+-                <div className="mt-0.5 flex items-start justify-between gap-2">
+-                  <span className="text-[12.5px] text-ink">{c.value}</span>
+-                  <SourceTag label={c.source} onOpen={setPreview} />
++          {d.cope.map((c, i) => {
++            const meta = COPE_META[i];
++            return (
++              <div key={c.label} className="flex items-start gap-3 px-4 py-3">
++                {meta && <IconChip icon={meta.icon} tone={meta.tone} size="h-8 w-8" />}
++                <div className="flex-1 min-w-0">
++                  <div className="text-[10.5px] font-semibold text-fog">{c.label}</div>
++                  <div className="mt-0.5 flex items-start justify-between gap-2">
++                    <span className="text-[12.5px] text-ink">{c.value}</span>
++                    <SourceTag label={c.source} onOpen={setPreview} />
++                  </div>
+                 </div>
+               </div>
+-            </div>
+-          ))}
++            );
++          })}
+         </div>
+       </SectionCard>
+       {preview && <SourcePreviewModal label={preview} onClose={() => setPreview(null)} />}
+@@ -333,8 +376,12 @@ function PropertyDetailsSection() {
+ 
+ /* ─────────────── Risk Protections ─────────────── */
+ 
+-const PROTECTION_ICONS: Record<string, ComponentType<{ className?: string }>> = {
+-  flame: Flame, droplet: Droplet, bell: Bell, lock: Lock, zap: Zap,
++const PROTECTION_ICONS: Record<string, { icon: ComponentType<{ className?: string }>; tone: IconTone }> = {
++  flame: { icon: Flame, tone: "coral" },
++  droplet: { icon: Droplet, tone: "electric" },
++  bell: { icon: Bell, tone: "amber" },
++  lock: { icon: Lock, tone: "iris" },
++  zap: { icon: Zap, tone: "leaf" },
+ };
+ 
+ function RiskProtectionsSection() {
+@@ -344,11 +391,11 @@ function RiskProtectionsSection() {
+       <AiSummaryCard {...d.aiSummary} />
+       <div className="grid grid-cols-3 gap-4">
+         {d.cards.map((c) => {
+-          const Icon = PROTECTION_ICONS[c.icon] ?? ShieldCheck;
++          const meta = PROTECTION_ICONS[c.icon] ?? { icon: ShieldCheck, tone: "electric" as IconTone };
+           return (
+             <div key={c.key} className="rounded-xl border border-mist/70 bg-white p-4">
+-              <div className="grid h-9 w-9 place-items-center rounded-lg bg-electric/10 text-electric mb-2.5">
+-                <Icon className="h-4.5 w-4.5" />
++              <div className="mb-2.5">
++                <IconChip icon={meta.icon} tone={meta.tone} />
+               </div>
+               <div className="text-[13px] font-semibold text-ink">{c.label}</div>
+               <div className="mt-1.5 space-y-1">
+@@ -366,6 +413,12 @@ function RiskProtectionsSection() {
+ 
+ /* ─────────────── Data Sources ─────────────── */
+ 
++const SOURCE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
++  shield: ShieldCheck, dollar: DollarSign, droplet: Droplet, cloud: CloudLightning,
++  waves: Waves, satellite: Satellite, trending: TrendingUp, users: Users,
++  history: History, building: Building2, file: FileText,
++};
++
+ function DataSourcesSection() {
+   const d = dataSourcesTab;
+   return (
+@@ -384,9 +437,16 @@ function DataSourcesSection() {
+               </tr>
+             </thead>
+             <tbody>
+-              {d.sources.map((s) => (
++              {d.sources.map((s) => {
++                const Icon = SOURCE_ICONS[s.icon] ?? Database;
++                return (
+                 <tr key={s.name} className="border-t border-mist/50">
+-                  <td className="px-4 py-2.5 font-medium text-ink whitespace-nowrap">{s.name}</td>
++                  <td className="px-4 py-2.5 font-medium text-ink whitespace-nowrap">
++                    <div className="flex items-center gap-2.5">
++                      <IconChip icon={Icon} tone={s.tone as IconTone} size="h-7 w-7" />
++                      {s.name}
++                    </div>
++                  </td>
+                   <td className="px-4 py-2.5 text-ink">{s.type}</td>
+                   <td className="px-4 py-2.5 text-smoke tabular-nums whitespace-nowrap">{s.lastUpdated}</td>
+                   <td className="px-4 py-2.5 text-ink whitespace-nowrap">{s.coverage}</td>
+@@ -398,7 +458,8 @@ function DataSourcesSection() {
+                     )}
+                   </td>
+                 </tr>
+-              ))}
++                );
++              })}
+             </tbody>
+           </table>
+         </div>
+@@ -426,12 +487,20 @@ function MapGisSection() {
+ 
+       <div className="grid grid-cols-2 gap-4">
+         <div className="rounded-xl border border-mist/70 bg-white p-4 space-y-2">
++          <div className="flex items-center gap-2.5 mb-1">
++            <IconChip icon={Droplet} tone="electric" size="h-8 w-8" />
++            <div className="text-[12.5px] font-semibold text-ink">Flood</div>
++          </div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Flood Zone</span><span className="text-ink font-medium">{d.flood.zone}</span></div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Base Flood Elevation</span><span className="text-ink font-medium tabular-nums">{d.flood.bfe}</span></div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Lowest Floor Elevation</span><span className="text-ink font-medium tabular-nums">{d.flood.lowestFloor}</span></div>
+           <div className="pt-1 text-[10.5px] text-fog">Last updated {d.flood.lastUpdated}</div>
+         </div>
+         <div className="rounded-xl border border-mist/70 bg-white p-4 space-y-2">
++          <div className="flex items-center gap-2.5 mb-1">
++            <IconChip icon={Waves} tone="coral" size="h-8 w-8" />
++            <div className="text-[12.5px] font-semibold text-ink">Seismic</div>
++          </div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Seismic Design Category</span><span className="text-ink font-medium">{d.seismic.category}</span></div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Peak Ground Acceleration</span><span className="text-ink font-medium tabular-nums">{d.seismic.pga}</span></div>
+           <div className="flex items-baseline justify-between text-[12.5px]"><span className="text-smoke">Nearest Mapped Fault</span><span className="text-ink font-medium tabular-nums">{d.seismic.nearestFault}</span></div>
+@@ -439,7 +508,10 @@ function MapGisSection() {
+         </div>
+         <div className="rounded-xl border border-mist/70 bg-white p-4">
+           <div className="flex items-center justify-between">
+-            <div className="text-[12.5px] font-semibold text-ink">Insured Loss Run History (5-yr)</div>
++            <div className="flex items-center gap-2.5">
++              <IconChip icon={History} tone="amber" size="h-8 w-8" />
++              <div className="text-[12.5px] font-semibold text-ink">Insured Loss Run History (5-yr)</div>
++            </div>
+             <Chip tone="amber" label="Pending Review" />
+           </div>
+           <div className="mt-2 space-y-1.5">
+@@ -451,7 +523,10 @@ function MapGisSection() {
+         </div>
+         <div className="rounded-xl border border-mist/70 bg-white p-4">
+           <div className="flex items-center justify-between">
+-            <div className="text-[12.5px] font-semibold text-ink">Aerial & Satellite Imagery Feed</div>
++            <div className="flex items-center gap-2.5">
++              <IconChip icon={Satellite} tone="iris" size="h-8 w-8" />
++              <div className="text-[12.5px] font-semibold text-ink">Aerial & Satellite Imagery Feed</div>
++            </div>
+             <Chip tone="leaf" label="Verified" />
+           </div>
+           <div className="mt-2 space-y-1.5">
+@@ -509,6 +584,10 @@ function MapGisSection() {
+ 
+ /* ─────────────── Satellite Imagery ─────────────── */
+ 
++const OBSERVATION_ICONS: Record<string, ComponentType<{ className?: string }>> = {
++  home: Home, package: Package, snowflake: Snowflake, lock: Lock, tree: TreePine, "map-pin": MapPin,
++};
++
+ const SATELLITE_PINS = [
+   { x: 34, y: 38 }, { x: 52, y: 62 }, { x: 71, y: 30 }, { x: 22, y: 70 }, { x: 60, y: 78 },
+ ];
+@@ -553,15 +632,18 @@ function SatelliteImagerySection() {
+           </div>
+ 
+           <div className="mt-4 divide-y divide-mist/50">
+-            {d.observations.map((o) => (
+-              <div key={o.label} className="flex items-start gap-2.5 py-2.5">
+-                <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${o.severity === "watch" ? "bg-[#f5a623]" : "bg-leaf"}`} />
+-                <div className="min-w-0">
+-                  <div className="text-[12.5px] font-semibold text-ink">{o.label}</div>
+-                  <div className="text-[12px] text-smoke leading-snug">{o.detail}</div>
++            {d.observations.map((o) => {
++              const Icon = OBSERVATION_ICONS[o.icon] ?? MapPin;
++              return (
++                <div key={o.label} className="flex items-start gap-3 py-2.5">
++                  <IconChip icon={Icon} tone={o.severity === "watch" ? "amber" : "leaf"} size="h-8 w-8" />
++                  <div className="min-w-0 pt-0.5">
++                    <div className="text-[12.5px] font-semibold text-ink">{o.label}</div>
++                    <div className="text-[12px] text-smoke leading-snug">{o.detail}</div>
++                  </div>
+                 </div>
+-              </div>
+-            ))}
++              );
++            })}
+           </div>
+         </div>
+       </SectionCard>
+diff --git a/src/lib/journey.ts b/src/lib/journey.ts
+index 3082fae..bebf35e 100644
+--- a/src/lib/journey.ts
++++ b/src/lib/journey.ts
+@@ -575,17 +575,17 @@ export const dataSourcesTab = {
+     ],
+   },
+   sources: [
+-    { name: "Verisk / ISO", type: "Protection class & construction rating", lastUpdated: "2026-01-08", coverage: "High confidence", status: "Verified" },
+-    { name: "CoreLogic", type: "Replacement cost & construction model", lastUpdated: "2026-02-02", coverage: "±3% RCV confidence", status: "Verified" },
+-    { name: "FEMA Flood Map Service", type: "Flood zone & base flood elevation", lastUpdated: "2024-03-01", coverage: "Parcel-level", status: "Verified" },
+-    { name: "AIR Worldwide", type: "Wind, hurricane & flood CAT modelling", lastUpdated: "2026-01-14", coverage: "1-in-100 / 1-in-250 return periods", status: "Verified" },
+-    { name: "USGS", type: "Seismic hazard & fault mapping", lastUpdated: "2023-11-14", coverage: "Regional", status: "Verified" },
+-    { name: "Nearmap", type: "Aerial & satellite imagery", lastUpdated: "2026-01-14", coverage: "Full parcel + 300 ft buffer", status: "Verified" },
+-    { name: "D&B", type: "Business credit report", lastUpdated: "2026-01-20", coverage: "PAYDEX 82", status: "Verified" },
+-    { name: "LexisNexis Accurint", type: "Principal & entity screening", lastUpdated: "2026-01-19", coverage: "OFAC / PEP / adverse media", status: "Verified" },
+-    { name: "Chubb (prior carrier)", type: "5-year loss run history", lastUpdated: "2026-01-05", coverage: "2020 – 2025", status: "Verified" },
+-    { name: "FL SunBiz", type: "Entity registration & good-standing", lastUpdated: "2026-01-02", coverage: "Record L15000091823", status: "Verified" },
+-    { name: "Insured Submission", type: "ACORD 125 / 140, SOV, appraisal", lastUpdated: "2025-11-01", coverage: "14 documents · 312 fields", status: "Review — SOV stale" },
++    { name: "Verisk / ISO", type: "Protection class & construction rating", lastUpdated: "2026-01-08", coverage: "High confidence", status: "Verified", icon: "shield", tone: "electric" },
++    { name: "CoreLogic", type: "Replacement cost & construction model", lastUpdated: "2026-02-02", coverage: "±3% RCV confidence", status: "Verified", icon: "dollar", tone: "leaf" },
++    { name: "FEMA Flood Map Service", type: "Flood zone & base flood elevation", lastUpdated: "2024-03-01", coverage: "Parcel-level", status: "Verified", icon: "droplet", tone: "electric" },
++    { name: "AIR Worldwide", type: "Wind, hurricane & flood CAT modelling", lastUpdated: "2026-01-14", coverage: "1-in-100 / 1-in-250 return periods", status: "Verified", icon: "cloud", tone: "coral" },
++    { name: "USGS", type: "Seismic hazard & fault mapping", lastUpdated: "2023-11-14", coverage: "Regional", status: "Verified", icon: "waves", tone: "coral" },
++    { name: "Nearmap", type: "Aerial & satellite imagery", lastUpdated: "2026-01-14", coverage: "Full parcel + 300 ft buffer", status: "Verified", icon: "satellite", tone: "iris" },
++    { name: "D&B", type: "Business credit report", lastUpdated: "2026-01-20", coverage: "PAYDEX 82", status: "Verified", icon: "trending", tone: "leaf" },
++    { name: "LexisNexis Accurint", type: "Principal & entity screening", lastUpdated: "2026-01-19", coverage: "OFAC / PEP / adverse media", status: "Verified", icon: "users", tone: "amber" },
++    { name: "Chubb (prior carrier)", type: "5-year loss run history", lastUpdated: "2026-01-05", coverage: "2020 – 2025", status: "Verified", icon: "history", tone: "amber" },
++    { name: "FL SunBiz", type: "Entity registration & good-standing", lastUpdated: "2026-01-02", coverage: "Record L15000091823", status: "Verified", icon: "building", tone: "electric" },
++    { name: "Insured Submission", type: "ACORD 125 / 140, SOV, appraisal", lastUpdated: "2025-11-01", coverage: "14 documents · 312 fields", status: "Review — SOV stale", icon: "file", tone: "smoke" },
+   ],
+ };
+ 
+@@ -637,12 +637,12 @@ export const satelliteImageryTab = {
+   captureDate: "2026-01-14",
+   resolution: "6.0 cm / pixel",
+   observations: [
+-    { label: "Roof surface — uniform TPO membrane", detail: "No ponding, debris or membrane damage observed, consistent with the 2026 re-coating.", severity: "good" as const },
+-    { label: "Loading dock & drainage", detail: "Dock lighting, bollards and drainage are all present and functioning.", severity: "good" as const },
+-    { label: "Rooftop refrigeration units", detail: "Condenser and compressor units appear well-maintained with no visible corrosion.", severity: "good" as const },
+-    { label: "Perimeter fencing & lighting", detail: "Fencing and security lighting are intact around the full site perimeter.", severity: "good" as const },
+-    { label: "Vegetation — northeast fence line", detail: "Minor vegetation growth along the fence line; recommend routine trim, not a material exposure.", severity: "watch" as const },
+-    { label: "Adjacent parcel", detail: "Paved surface lot to the east — no exposure amplification from neighboring occupancies.", severity: "good" as const },
++    { label: "Roof surface — uniform TPO membrane", detail: "No ponding, debris or membrane damage observed, consistent with the 2026 re-coating.", severity: "good" as const, icon: "home" },
++    { label: "Loading dock & drainage", detail: "Dock lighting, bollards and drainage are all present and functioning.", severity: "good" as const, icon: "package" },
++    { label: "Rooftop refrigeration units", detail: "Condenser and compressor units appear well-maintained with no visible corrosion.", severity: "good" as const, icon: "snowflake" },
++    { label: "Perimeter fencing & lighting", detail: "Fencing and security lighting are intact around the full site perimeter.", severity: "good" as const, icon: "lock" },
++    { label: "Vegetation — northeast fence line", detail: "Minor vegetation growth along the fence line; recommend routine trim, not a material exposure.", severity: "watch" as const, icon: "tree" },
++    { label: "Adjacent parcel", detail: "Paved surface lot to the east — no exposure amplification from neighboring occupancies.", severity: "good" as const, icon: "map-pin" },
+   ],
+ };
+ 
+-- 
+2.43.0
+
